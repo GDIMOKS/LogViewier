@@ -7,6 +7,8 @@ private:
 	string paramName;
 	string paramValue;
 public:
+	Param();
+
 	string getParamName();
 	void setParamName(string);
 

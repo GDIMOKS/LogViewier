@@ -1,5 +1,7 @@
 #include "Param.h"
 
+Param::Param(){}
+
 string Param::getParamName() { return paramName; }
 void Param::setParamName(string name) { paramName = name; }
 

@@ -140,11 +140,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="FileManager.cpp" />
     <ClCompile Include="Frame.cpp" />
     <ClCompile Include="LogViewier.cpp" />
     <ClCompile Include="Param.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="FileManager.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="Param.h" />
   </ItemGroup>

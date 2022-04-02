@@ -19,10 +19,11 @@ private:
 	bool correct = true;
 	Param param;
 
-	//list<Param> params;
 	vector<Param> params;
 
 public:
+	Frame();
+
 	string getFrameName();
 	void setFrameName(string);
 

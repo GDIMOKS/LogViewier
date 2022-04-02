@@ -1,5 +1,12 @@
 #include "Frame.h"
 
+
+Frame::Frame()
+{
+    Param p;
+}
+
+
 string Frame::getFrameName() { return frameName; }
 void Frame::setFrameName(string value) { frameName = value; }
 
