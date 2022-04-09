@@ -1,6 +1,7 @@
 #include "FileManager.h"
 
 namespace filemanager {
+
     void FileManager::Dir(fs::path* currentDir)
     {
         for (fs::directory_iterator it(*currentDir), end; it != end; ++it)
@@ -103,16 +104,13 @@ namespace filemanager {
         while (inputCommand != "exit")
         {
             std::string fullCommand[2];
-            size_t pos;
 
             std::cout << currentDir.string() << ">";
             getline(std::cin, inputCommand);
 
             if (strchr(inputCommand.c_str(), ' '))
             {
-                pos = inputCommand.find(' ');
-                fullCommand[0] = inputCommand.substr(0, pos);
-                fullCommand[1] = inputCommand.substr(pos + 1, inputCommand.length() - 1);
+                ffunc::FormatFunctions::Separator(inputCommand, &fullCommand[0], &fullCommand[1], " ");
             }
             else
             {
@@ -130,7 +128,7 @@ namespace filemanager {
             }
             else if (inputCommand == "cd")
             {
-
+                std::cout << currentDir.string() << "\n\n";
             }
 
             if (fullCommand[0] == "type")

@@ -141,12 +141,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="FileManager.cpp" />
+    <ClCompile Include="FormatFunctions.cpp" />
     <ClCompile Include="Frame.cpp" />
     <ClCompile Include="LogViewier.cpp" />
     <ClCompile Include="Param.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FileManager.h" />
+    <ClInclude Include="FormatFunctions.h" />
     <ClInclude Include="Frame.h" />
     <ClInclude Include="Param.h" />
   </ItemGroup>

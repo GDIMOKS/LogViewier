@@ -45,13 +45,12 @@ public:
 	bool getCorrect();
 	void setCorrect(bool);
 
-	//list<Param> getParams();
-	//void setParams(Param);
-
 	void MakeParam(string, string);
 
 	void PrintParams();
 
-	void SearchParam();
+	string SearchParam(string);// string);
+
+	string GetAddress(string, int);
 };
 

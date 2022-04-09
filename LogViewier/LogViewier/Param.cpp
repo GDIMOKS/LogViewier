@@ -17,12 +17,4 @@ Param::Param(string name = "", string value = "")
 void Param::PrintParam()
 {
 	cout << paramName + "=" + paramValue;
-	/*if (paramName == "Frame")
-	{
-		cout << "\n\t\t" << paramName + "=" + paramValue << "\n\t\t";
-	}
-	else
-	{
-		cout << paramName + "=" + paramValue << ", ";
-	}*/
 }

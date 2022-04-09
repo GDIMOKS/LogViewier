@@ -8,6 +8,9 @@
 #include <string.h>
 #include <string>
 
+#include "FormatFunctions.h"
+
+namespace ffunc = formatfunctions;
 namespace fs = std::filesystem;
 
 namespace filemanager {

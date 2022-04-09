@@ -28,9 +28,6 @@ void Frame::setFrameHex(string value) { frameHex = value; }
 bool Frame::getCorrect() { return correct; }
 void Frame::setCorrect(bool value) { correct = value; }
 
-//list<Param> Frame::getParams() { return params; }
-//void Frame::setParams(Param param) { params.push_back(param); }
-
 void Frame::MakeParam(string name, string value)
 {
     Param param{ name, value };
@@ -45,32 +42,39 @@ void Frame::PrintParams()
     for (Param p : params)
     {
         p.PrintParam();
+
         if (p.getParamName() != p1.getParamName() && p.getParamValue() != p1.getParamValue())
         {
             cout << ", ";
         }
-        /*
-        if (p.getParamName() == "Frame")
-        {
-            cout << "\n\t\t";
-            p.PrintParam();
-            cout << "\t\t";
-        }
-        else
-        {
-            p.PrintParam();
-            cout << ", ";
-        }*/
     }
 }
 
-void Frame::SearchParam()
+string Frame::SearchParam(string name)//, string value = "")
 {
     for (Param p : params)
     {
-        if (p.getParamName() == "FCS" && p.getParamValue() == "Fail")
+        if (p.getParamName() == name)
         {
-            correct = false;
+            return p.getParamValue();
         }
     }
+    
+    return "";
+}
+
+string Frame::GetAddress(string frameHex, int position)
+{
+    string address = "";
+    for (int i = 0; i < 12; i++)
+    {
+        address += frameHex[i + position];
+
+        if ((i + 1) % 2 == 0 && (i + 1) != 12)
+        {
+            address += ":";
+        }
+    }
+
+    return address;
 }
