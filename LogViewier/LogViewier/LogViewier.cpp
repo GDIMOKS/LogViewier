@@ -190,6 +190,11 @@ void MACReader(vector<Frame>* frames)
         }
     };
 
+    vector<string> addresses;
+    std::vector<string>::iterator iter;
+
+    addresses.clear();
+
     for (Frame f : *frames)
     {
         if (f.getCorrect())
@@ -201,7 +206,7 @@ void MACReader(vector<Frame>* frames)
 
             /*string flagsFrame = ffunc::FormatFunctions::HexToBin(secondByte);
             reverse(flagsFrame.begin(), flagsFrame.end());
-            string direction = flagsFr.substr(0, 2);*/
+            string direction = flagsFrame.substr(0, 2);*/
 
             string typeBin = binFrame.substr(4, 2);
             string subtypeBin = binFrame.substr(0, 4);
@@ -217,11 +222,43 @@ void MACReader(vector<Frame>* frames)
                 cout << "Type=" << it->second << endl;
                 cout << "RA=" << f.GetAddress(f.getFrameHex(), 8) << endl;
 
-                if (!(typeDec == 1 && (it->first == 6 || it->first == 7 || it->first == 12 || it->first == 13)))
-                    cout << "TA=" << f.GetAddress(f.getFrameHex(), 20) << endl;
+                iter = find(addresses.begin(), addresses.end(), f.GetAddress(f.getFrameHex(), 8));
+                if ( iter == addresses.end())
+                {
+                    addresses.push_back(f.GetAddress(f.getFrameHex(), 8));
+                }
 
-                if (typeDec == 0)
+                if (!(typeDec == 1 && (it->first == 6 || it->first == 7 || it->first == 12 || it->first == 13)))
+                {
+                    if (find(addresses.begin(), addresses.end(), f.GetAddress(f.getFrameHex(), 20)) == addresses.end())
+                    {
+                        addresses.push_back(f.GetAddress(f.getFrameHex(), 20));
+                    }
+                    cout << "TA=" << f.GetAddress(f.getFrameHex(), 20) << endl;
+                }
+                    
+
+                /*if (typeDec == 0)
+                {
+                    if (find(addresses.begin(), addresses.end(), f.GetAddress(f.getFrameHex(), 32)) == addresses.end())
+                    {
+                        addresses.push_back(f.GetAddress(f.getFrameHex(), 32));
+                    }
+
                     cout << "BSSID=" << f.GetAddress(f.getFrameHex(), 32) << endl;
+                }*/
+
+                /*if (typeDec == 2 && direction == "11")
+                {
+                    if (find(addresses.begin(), addresses.end(), f.GetAddress(f.getFrameHex(), 46)) == addresses.end())
+                    {
+                        addresses.push_back(f.GetAddress(f.getFrameHex(), 46));
+                    }
+
+                    cout << "DA=" << f.GetAddress(f.getFrameHex(), 32) << endl;
+                    cout << "SA=" << f.GetAddress(f.getFrameHex(), 46) << endl;
+                }*/
+                    
             }
             else
             {
@@ -230,6 +267,12 @@ void MACReader(vector<Frame>* frames)
 
             cout << endl << endl;
         }
+    }
+
+    cout << "Адреса участников:\n\n";
+    for (string str : addresses)
+    {
+        cout << str << endl;
     }
 }
 
