@@ -1,4 +1,7 @@
 #pragma once
+#ifndef FRAME_H
+#define FRAME_H
+
 #include <string.h>
 #include <string>
 #include <vector>
@@ -54,3 +57,4 @@ public:
 	string GetAddress(string, int);
 };
 
+#endif //FRAME_H

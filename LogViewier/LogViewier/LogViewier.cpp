@@ -11,6 +11,7 @@
 #include "Param.h"
 #include "FileManager.h"
 #include "FormatFunctions.h"
+#include "Graph.h"
 
 
 namespace fs = std::filesystem;
@@ -19,15 +20,15 @@ using namespace std;
 
 
 
-int CountCorrect(vector<Frame>*);
+int CountCorrect(vector<Frame>&);
 
-void PrintFrames(vector<Frame>*);
+void PrintFrames(vector<Frame>&);
 
-void ChoiceParam(Frame*, string*, string*);
+void ChoiceParam(Frame&, string&, string&);
 
-void PrintStatistics(vector<Frame>*);
+void PrintStatistics(vector<Frame>&);
 
-void MACReader(vector<Frame>*);
+Graph MACReader(vector<Frame>&);
 
 void LogReader(string);
 
@@ -36,14 +37,14 @@ int main()
 {
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
-    //setlocale(LC_ALL, "Russian"); Почему-то при введении в консоль данных на кириллице работает некорректно
+    //setlocale(LC_ALL, "Russian"); //Cyrillic input from the console does not work
 
     fs::path lastPath = "";
     string command = "";
 
     while (command != "exit")
     {
-        fs::path file = filemanager::FileManager::FileManagerFunc(&lastPath);
+        fs::path file = filemanager::FileManager::FileManagerFunc(lastPath);
         lastPath = file.parent_path();
 
         if (file.extension() == ".log")
@@ -65,11 +66,11 @@ int main()
     return 0;
 }
 
-int CountCorrect(vector<Frame>* frames)
+int CountCorrect(vector<Frame>& frames)
 {
     int sum = 0;
 
-    for (Frame f : *frames)
+    for (Frame f : frames)
     {
         if (f.getCorrect() == true)
         {
@@ -80,9 +81,9 @@ int CountCorrect(vector<Frame>* frames)
     return sum;
 }
 
-void PrintFrames(vector<Frame>* frames)
+void PrintFrames(vector<Frame>& frames)
 {
-    for (Frame f : *frames)
+    for (Frame f : frames)
     {
         cout << f.getFrameName() << "\tOffset=" << f.getOffset() << ", BW=" << f.getBW() << ", MCS=" << f.getMCS() << ", Size=" << f.getSize() << endl;
         cout << "\t\tFrame=" << f.getFrameHex() << "\n\t\t";
@@ -91,54 +92,55 @@ void PrintFrames(vector<Frame>* frames)
     }
 }
 
-void ChoiceParam(Frame* frame, string* paramName, string* paramValue)
+void ChoiceParam(Frame& frame, string& paramName, string& paramValue)
 {
-    if (*paramName == "Offset")
+    if (paramName == "Offset")
     {
-        (*frame).setOffset(*paramValue);
+        frame.setOffset(paramValue);
         return;
     }
-    else if (*paramName == "BW")
+    else if (paramName == "BW")
     {
-        (*frame).setBW(*paramValue);
+        frame.setBW(paramValue);
         return;
     }
-    else if (*paramName == "MCS")
+    else if (paramName == "MCS")
     {
-        (*frame).setMCS(*paramValue);
+        frame.setMCS(paramValue);
         return;
     }
-    else if (*paramName == "Size")
+    else if (paramName == "Size")
     {
-        (*frame).setSize(*paramValue);
+        frame.setSize(paramValue);
         return;
     }
-    /*else if (*paramName == "Frame")
+    /*else if (paramName == "Frame")
     {
-        (*frame).setFrameHex(*paramValue);
+        frame.setFrameHex(paramValue);
         return;
     }*/
 
-    if (*paramName == "FCS" && *paramValue == "Fail")
+    if (paramName == "FCS" && paramValue == "Fail")
     {
-        (*frame).setCorrect(false);
+        frame.setCorrect(false);
     }
 
-    (*frame).MakeParam(*paramName, *paramValue);
+    frame.MakeParam(paramName, paramValue);
 }
 
-void PrintStatistics(vector<Frame>* frames)
+void PrintStatistics(vector<Frame>& frames)
 {
     int correctFrames = CountCorrect(frames);
-    double correctPercent = correctFrames * 100.0 / (*frames).size();
+    double correctPercent = correctFrames * 100.0 / frames.size();
 
-    cout << "\nВсего фреймов: " << (*frames).size() << endl;
+    cout << "\nВсего фреймов: " << frames.size() << endl;
     cout << "Из них корректных: " << correctFrames << endl;
     cout << "Процент корректности фреймов: " << correctPercent << "%\n\n";
 }
 
-void MACReader(vector<Frame>* frames)
+Graph MACReader(vector<Frame>& frames)
 {
+    Graph g;
     map<int, map<int, string>> subtypes
     {
         {0,
@@ -195,7 +197,7 @@ void MACReader(vector<Frame>* frames)
 
     addresses.clear();
 
-    for (Frame f : *frames)
+    for (Frame f : frames)
     {
         if (f.getCorrect())
         {
@@ -218,25 +220,30 @@ void MACReader(vector<Frame>* frames)
 
             if (it != subtypes.at(typeDec).end())
             {
-                cout << f.getFrameName() << "\n";
-                cout << "Type=" << it->second << endl;
-                cout << "RA=" << f.GetAddress(f.getFrameHex(), 8) << endl;
+                string RA = f.GetAddress(f.getFrameHex(), 8);
+                string TA = "";
+                //cout << f.getFrameName() << "\n";
+                //cout << "Type=" << it->second << endl;
+                //cout << "RA=" << RA << endl;
 
-                iter = find(addresses.begin(), addresses.end(), f.GetAddress(f.getFrameHex(), 8));
-                if ( iter == addresses.end())
+                iter = find(addresses.begin(), addresses.end(), RA);
+                if (iter == addresses.end())
                 {
-                    addresses.push_back(f.GetAddress(f.getFrameHex(), 8));
+                    addresses.push_back(RA);
                 }
 
                 if (!(typeDec == 1 && (it->first == 6 || it->first == 7 || it->first == 12 || it->first == 13)))
                 {
-                    if (find(addresses.begin(), addresses.end(), f.GetAddress(f.getFrameHex(), 20)) == addresses.end())
+                    TA = f.GetAddress(f.getFrameHex(), 20);
+                    if (find(addresses.begin(), addresses.end(), TA) == addresses.end())
                     {
                         addresses.push_back(f.GetAddress(f.getFrameHex(), 20));
                     }
-                    cout << "TA=" << f.GetAddress(f.getFrameHex(), 20) << endl;
+                    //cout << "TA=" << TA << endl;
                 }
-                    
+                
+                
+                GraphFunction(g, RA, TA);
 
                 /*if (typeDec == 0)
                 {
@@ -265,15 +272,18 @@ void MACReader(vector<Frame>* frames)
                 cout << "Элемент не найден!\n";
             }
 
-            cout << endl << endl;
+            //cout << endl << endl;
         }
     }
-
     cout << "Адреса участников:\n\n";
     for (string str : addresses)
     {
         cout << str << endl;
     }
+
+    cout << endl;
+
+    return g;
 }
 
 void LogReader(string fileName)
@@ -304,7 +314,7 @@ void LogReader(string fileName)
             if (!b.empty())
             {
                 string param[2];
-                ffunc::FormatFunctions::Separator(b, &param[0], &param[1]);
+                ffunc::FormatFunctions::Separator(b, param[0], param[1]);
 
                 if (param[0] == "Frame")    // записывается отдельно, чтобы не нагружать буфер и стек
                 {
@@ -321,9 +331,9 @@ void LogReader(string fileName)
                         j = 0;
 
                         //string param[2];
-                        ffunc::FormatFunctions::Separator(value, &param[0], &param[1]);
+                        ffunc::FormatFunctions::Separator(value, param[0], param[1]);
 
-                        ChoiceParam(&frame, &param[0], &param[1]);
+                        ChoiceParam(frame, param[0], param[1]);
 
                         continue;
                     }
@@ -341,9 +351,11 @@ void LogReader(string fileName)
 
     //PrintFrames(&frames);
 
-    MACReader(&frames);
+    Graph g = MACReader(frames);
 
-    PrintStatistics(&frames);
+    PrintGraph(g);
+
+    PrintStatistics(frames);
 
 
 }

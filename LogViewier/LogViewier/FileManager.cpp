@@ -2,9 +2,9 @@
 
 namespace filemanager {
 
-    void FileManager::Dir(fs::path* currentDir)
+    void FileManager::Dir(fs::path& currentDir)
     {
-        for (fs::directory_iterator it(*currentDir), end; it != end; ++it)
+        for (fs::directory_iterator it(currentDir), end; it != end; ++it)
         {
             fs::path pth = it->path();
 
@@ -21,33 +21,33 @@ namespace filemanager {
                 }
                 std::cout << pth.filename().string() << std::endl;
             }
-            catch (fs::filesystem_error) // из-за наличия временных файлов (например, DumpStack.log.tmp) выдает исключение
+            catch (fs::filesystem_error) // temp files throw exceptions (for example, DumpStack.log.tmp)
             {
 
             }
         }
     }
 
-    void FileManager::Cd(fs::path* currentDir, std::string command)
+    void FileManager::Cd(fs::path& currentDir, std::string command)
     {
         try
         {
             if (command == "..")
             {
-                *currentDir = (*currentDir).parent_path();
+                currentDir = currentDir.parent_path();
             }
-            else if (fs::is_directory(*currentDir / command)) // проверка на директорию
+            else if (fs::is_directory(currentDir / command)) // check directory
             {
-                *currentDir /= command;
+                currentDir /= command;
             }
-            else if ((*currentDir / command).has_extension()) // проверка на файл
+            else if ((currentDir / command).has_extension()) // check file
             {
                 std::cout << "\nНевозможно открыть файл командой cd! Воспользуйтесь командой type." << std::endl;
             }
             else
             {
                 std::cout << "\nТакой директории не существует! Введите dir для просмотра директорий." << std::endl;
-                //cout << *currentDir << endl;
+                //cout << currentDir << endl;
                 //cout << command << endl;
             }
         }
@@ -57,14 +57,14 @@ namespace filemanager {
         }
     }
 
-    bool FileManager::Type(fs::path* currentDir, fs::path* fileDir, std::string fileName)
+    bool FileManager::Type(fs::path& currentDir, fs::path& fileDir, std::string fileName)
     {
-        fs::path file = *currentDir / fileName;
+        fs::path file = currentDir / fileName;
 
         if (fs::exists(file) && (file.extension() == ".log" || file.extension() == ".pcap"))
         {
-            *fileDir = file;
-            std::cout << "\nПроисходит обработка файла " << (*fileDir).filename() << "..." << std::endl;
+            fileDir = file;
+            std::cout << "\nПроисходит обработка файла " << fileDir.filename() << "..." << std::endl;
 
             return true;
         }
@@ -85,14 +85,14 @@ namespace filemanager {
             "exit - выход из программы\n" << std::endl;
     }
 
-    fs::path FileManager::FileManagerFunc(fs::path* lastPath)
+    fs::path FileManager::FileManagerFunc(fs::path& lastPath)
     {
         fs::path workDir = fs::current_path();
         fs::path currentDir = workDir;
 
-        if (!(*lastPath).empty())
+        if (!lastPath.empty())
         {
-            currentDir = *lastPath;
+            currentDir = lastPath;
         }
 
         fs::path fileDir;
@@ -110,7 +110,7 @@ namespace filemanager {
 
             if (strchr(inputCommand.c_str(), ' '))
             {
-                ffunc::FormatFunctions::Separator(inputCommand, &fullCommand[0], &fullCommand[1], " ");
+                ffunc::FormatFunctions::Separator(inputCommand, fullCommand[0], fullCommand[1], " ");
             }
             else
             {
@@ -119,12 +119,12 @@ namespace filemanager {
 
             if (inputCommand == "dir")
             {
-                Dir(&currentDir);
+                Dir(currentDir);
             }
 
             if (fullCommand[0] == "cd" && !fullCommand[1].empty())
             {
-                Cd(&currentDir, fullCommand[1]);
+                Cd(currentDir, fullCommand[1]);
             }
             else if (inputCommand == "cd")
             {
@@ -133,7 +133,7 @@ namespace filemanager {
 
             if (fullCommand[0] == "type")
             {
-                if (Type(&currentDir, &fileDir, fullCommand[1]))
+                if (Type(currentDir, fileDir, fullCommand[1]))
                     break;
             }
 

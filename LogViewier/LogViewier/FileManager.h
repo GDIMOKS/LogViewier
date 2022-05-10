@@ -1,7 +1,7 @@
 #pragma once
 
-#ifndef FILE_MANAGER_H_
-#define FILE_MANAGER_H_
+#ifndef FILE_MANAGER_H
+#define FILE_MANAGER_H
 
 #include <iostream>
 #include <filesystem>
@@ -19,15 +19,15 @@ namespace filemanager {
 	private:
 		FileManager();
 	public:
-		static void Dir(fs::path*);
-		static void Cd(fs::path*, std::string);
-		static bool Type(fs::path*, fs::path*, std::string);
+		static void Dir(fs::path&);
+		static void Cd(fs::path&, std::string);
+		static bool Type(fs::path&, fs::path&, std::string);
 		static void Help();
-		static fs::path FileManagerFunc(fs::path*);
+		static fs::path FileManagerFunc(fs::path&);
 
 	};
 }
 
 
-#endif
+#endif //FILE_MANAGER_H
 

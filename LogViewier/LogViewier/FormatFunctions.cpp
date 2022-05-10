@@ -11,12 +11,12 @@ namespace formatfunctions {
         return str;
     }
 
-    void FormatFunctions::Separator(std::string value, std::string* beforSep, std::string* afterSep, std::string symbol)
+    void FormatFunctions::Separator(std::string value, std::string& beforSep, std::string& afterSep, std::string symbol)
     {
         size_t pos = value.find(symbol);
 
-        *beforSep = value.substr(0, pos);
-        *afterSep = value.substr(pos + 1, value.length() - 1);
+        beforSep = value.substr(0, pos);
+        afterSep = value.substr(pos + 1, value.length() - 1);
     }
 
     std::string FormatFunctions::HexToBin(std::string str)
