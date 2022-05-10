@@ -64,7 +64,7 @@ namespace filemanager {
         if (fs::exists(file) && (file.extension() == ".log" || file.extension() == ".pcap"))
         {
             fileDir = file;
-            std::cout << "\nПроисходит обработка файла " << fileDir.filename() << "..." << std::endl;
+            std::cout << "\nПроисходит обработка файла " << fileDir.filename() << "...\n" << std::endl;
 
             return true;
         }

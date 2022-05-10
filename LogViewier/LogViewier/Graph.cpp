@@ -91,21 +91,22 @@ void CheckMac(Graph& g, string edgeName, string mac, string mode = "out")
 
 void PrintGraph(Graph& g)
 {
+    cout << "¬заимодействие устройств и их интенсивность:\n";
     for (Vertex& v : g)
     {
-        cout << "Name : \t" << v.name << endl;
-        cout << "in : ";
+        //cout << "Name : \t" << v.name << endl;
+        /*cout << "in : ";
         for (auto& t : v.in)
         {
             cout << "\t" << t.value << " " << t.count << endl;
         }
         cout << endl;
-        cout << "out : ";
+        cout << "out : ";*/
         for (auto& t : v.out)
         {
-            cout << "\t" << t.value << " " << t.count << endl;
+            cout << v.name << " -> " << t.value << " : " << t.count << endl;
         }
-        cout << "\n\n";
+        //cout << "\n\n";
     }
 }
 

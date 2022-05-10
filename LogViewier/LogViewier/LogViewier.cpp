@@ -141,6 +141,7 @@ void PrintStatistics(vector<Frame>& frames)
 Graph MACReader(vector<Frame>& frames)
 {
     Graph g;
+    int countNoAddress = 0;
     map<int, map<int, string>> subtypes
     {
         {0,
@@ -222,9 +223,9 @@ Graph MACReader(vector<Frame>& frames)
             {
                 string RA = f.GetAddress(f.getFrameHex(), 8);
                 string TA = "";
-                //cout << f.getFrameName() << "\n";
-                //cout << "Type=" << it->second << endl;
-                //cout << "RA=" << RA << endl;
+                /*cout << f.getFrameName() << "\n";
+                cout << "Type=" << it->second << endl;
+                cout << "RA=" << RA << endl;*/
 
                 iter = find(addresses.begin(), addresses.end(), RA);
                 if (iter == addresses.end())
@@ -235,14 +236,20 @@ Graph MACReader(vector<Frame>& frames)
                 if (!(typeDec == 1 && (it->first == 6 || it->first == 7 || it->first == 12 || it->first == 13)))
                 {
                     TA = f.GetAddress(f.getFrameHex(), 20);
+
                     if (find(addresses.begin(), addresses.end(), TA) == addresses.end())
                     {
                         addresses.push_back(f.GetAddress(f.getFrameHex(), 20));
                     }
                     //cout << "TA=" << TA << endl;
                 }
+                else
+                {
+                    countNoAddress++;
+                }
                 
                 
+
                 GraphFunction(g, RA, TA);
 
                 /*if (typeDec == 0)
@@ -275,14 +282,15 @@ Graph MACReader(vector<Frame>& frames)
             //cout << endl << endl;
         }
     }
+
     cout << "Адреса участников:\n\n";
     for (string str : addresses)
     {
         cout << str << endl;
     }
 
-    cout << endl;
-
+    //cout << endl;
+    cout << "Фреймов без адресной информации: " << countNoAddress << endl;
     return g;
 }
 
