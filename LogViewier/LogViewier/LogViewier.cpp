@@ -250,7 +250,7 @@ Graph MACReader(vector<Frame>& frames)
                 
                 
 
-                GraphFunction(g, RA, TA);
+                GraphFunction(g, TA, RA);
 
                 /*if (typeDec == 0)
                 {
@@ -283,11 +283,11 @@ Graph MACReader(vector<Frame>& frames)
         }
     }
 
-    cout << "Адреса участников:\n\n";
+    /*cout << "Адреса участников:\n\n";
     for (string str : addresses)
     {
         cout << str << endl;
-    }
+    }*/
 
     //cout << endl;
     cout << "Фреймов без адресной информации: " << countNoAddress << endl;

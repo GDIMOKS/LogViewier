@@ -156,7 +156,8 @@ void GraphFunction(Graph& g, string edgeName, string outMac)
     }
     else // current vertex not found 
     {
-        g.push_back(setVertex(edgeName, outMac));
+        if (edgeName != "")
+            g.push_back(setVertex(edgeName, outMac));
 
         CheckMac(g, edgeName, outMac, "out");
 
