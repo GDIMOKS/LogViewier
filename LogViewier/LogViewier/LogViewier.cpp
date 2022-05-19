@@ -6,6 +6,7 @@
 #include <filesystem>
 #include <windows.h>
 #include <map>
+#include <sstream>
 
 #include "Frame.h"
 #include "Param.h"
@@ -223,6 +224,10 @@ Graph MACReader(vector<Frame>& frames)
             {
                 string RA = f.GetAddress(f.getFrameHex(), 8);
                 string TA = "";
+                string BSSID = "";
+                string SSID = "";
+                int SSID_length = 0;
+
                 /*cout << f.getFrameName() << "\n";
                 cout << "Type=" << it->second << endl;
                 cout << "RA=" << RA << endl;*/
@@ -248,19 +253,33 @@ Graph MACReader(vector<Frame>& frames)
                     countNoAddress++;
                 }
                 
-                
-
-                GraphFunction(g, TA, RA);
-
-                /*if (typeDec == 0)
+                if (typeDec == 0 && it->first == 8)
                 {
                     if (find(addresses.begin(), addresses.end(), f.GetAddress(f.getFrameHex(), 32)) == addresses.end())
                     {
                         addresses.push_back(f.GetAddress(f.getFrameHex(), 32));
                     }
 
-                    cout << "BSSID=" << f.GetAddress(f.getFrameHex(), 32) << endl;
-                }*/
+                    BSSID = f.GetAddress(f.getFrameHex(), 32);
+                    SSID_length = ffunc::FormatFunctions::HexToDec(f.getFrameHex().substr(72, 4));
+                    
+                    if (SSID_length == 0)
+                    {
+                        SSID = "-";
+                    }
+                    else
+                    {
+                        SSID = ffunc::FormatFunctions::HexToASCII(f.getFrameHex().substr(76, SSID_length * 2));
+                    }
+                    GraphFunction(g, BSSID, RA, SSID);
+
+                    //cout << "BSSID=" << BSSID << endl;                
+                    //cout << "SSID=" << SSID << endl;
+                }
+                else
+                {
+                    GraphFunction(g, TA, RA);
+                }
 
                 /*if (typeDec == 2 && direction == "11")
                 {
@@ -272,6 +291,8 @@ Graph MACReader(vector<Frame>& frames)
                     cout << "DA=" << f.GetAddress(f.getFrameHex(), 32) << endl;
                     cout << "SA=" << f.GetAddress(f.getFrameHex(), 46) << endl;
                 }*/
+
+                
                     
             }
             else
@@ -361,9 +382,14 @@ void LogReader(string fileName)
 
     Graph g = MACReader(frames);
 
-    PrintGraph(g);
+    
+    
 
     PrintStatistics(frames);
+    //cout << endl;
+    //PrintGraph(g);
+    cout << endl;
+    PrintNetworkGraph(g);
 
 
 }

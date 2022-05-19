@@ -6,6 +6,7 @@
 #include <string>
 #include <iostream>
 #include <map>
+#include <sstream>
 
 namespace formatfunctions {
 	class FormatFunctions
@@ -14,7 +15,9 @@ namespace formatfunctions {
 		static std::string EraseSymbol(std::string, char);
 		static void Separator(std::string, std::string&, std::string&, std::string = "=");
 		static std::string HexToBin(std::string);
-		static int BinToDec(std::string str);
+		static int BinToDec(std::string);
+		static int HexToDec(std::string);
+		static std::string HexToASCII(std::string);
 	};
 }
 

@@ -71,4 +71,24 @@ namespace formatfunctions {
 
         return value;
     }
+
+    int FormatFunctions::HexToDec(std::string str)
+    {
+        return BinToDec(HexToBin(str));
+    }
+
+    std::string FormatFunctions::HexToASCII(std::string str)
+    {
+        std::string outputString;
+        
+        for (int i = 0; i < str.length(); i += 2)
+        {
+            int intStr;
+            std::stringstream ss(str.substr(i, 2));
+            ss >> std::hex >> intStr;
+            outputString += (char)intStr;
+        }
+
+        return outputString;
+    }
 }
