@@ -194,7 +194,7 @@ void PrintNetworkGraph(Graph& g)
 
     for (Vertex& v : g)
     {
-        if (v.getStatus() == "" || v.getStatus() == "Broadcast")
+        if (v.getStatus() == "")// || v.getStatus() == "Broadcast")
         {
             others.push_back(v);
         }
