@@ -16,10 +16,17 @@
 
 
 namespace fs = std::filesystem;
-namespace ffunc = formatfunctions;
 using namespace std;
 
-
+//struct Network {
+//private:
+//    string name = "";
+//public:
+//    Graph devices;
+//
+//    void setName(string str) { name = str; }
+//    string getName() { return name; }
+//};
 
 int CountCorrect(vector<Frame>&);
 
@@ -206,17 +213,17 @@ Graph MACReader(vector<Frame>& frames)
             string firstByte = f.getFrameHex().substr(0, 2);
             //string secondByte = f.getFrameHex().substr(2, 2);
 
-            string binFrame = ffunc::FormatFunctions::HexToBin(firstByte);
+            string binFrame = ffunc::HexToBin(firstByte);
 
-            /*string flagsFrame = ffunc::FormatFunctions::HexToBin(secondByte);
+            /*string flagsFrame = ffunc::HexToBin(secondByte);
             reverse(flagsFrame.begin(), flagsFrame.end());
             string direction = flagsFrame.substr(0, 2);*/
 
             string typeBin = binFrame.substr(4, 2);
             string subtypeBin = binFrame.substr(0, 4);
 
-            int typeDec = ffunc::FormatFunctions::BinToDec(typeBin);
-            int subtypeDec = ffunc::FormatFunctions::BinToDec(subtypeBin);
+            int typeDec = ffunc::BinToDec(typeBin);
+            int subtypeDec = ffunc::BinToDec(subtypeBin);
 
             auto it = subtypes.at(typeDec).find(subtypeDec);
 
@@ -224,7 +231,7 @@ Graph MACReader(vector<Frame>& frames)
             {
                 string RA = f.GetAddress(f.getFrameHex(), 8);
                 string TA = "";
-                string BSSID = "";
+                //string BSSID = "";
                 string SSID = "";
                 int SSID_length = 0;
 
@@ -260,8 +267,8 @@ Graph MACReader(vector<Frame>& frames)
                         addresses.push_back(f.GetAddress(f.getFrameHex(), 32));
                     }
 
-                    BSSID = f.GetAddress(f.getFrameHex(), 32);
-                    SSID_length = ffunc::FormatFunctions::HexToDec(f.getFrameHex().substr(72, 4));
+                    //BSSID = f.GetAddress(f.getFrameHex(), 32);
+                    SSID_length = ffunc::HexToDec(f.getFrameHex().substr(72, 4));
                     
                     if (SSID_length == 0)
                     {
@@ -269,9 +276,21 @@ Graph MACReader(vector<Frame>& frames)
                     }
                     else
                     {
-                        SSID = ffunc::FormatFunctions::HexToASCII(f.getFrameHex().substr(76, SSID_length * 2));
+                        SSID = ffunc::HexToASCII(f.getFrameHex().substr(76, SSID_length * 2));
                     }
-                    GraphFunction(g, BSSID, RA, SSID);
+
+                    GraphFunction(g, TA, RA, SSID);
+
+                    //if (BSSID == TA)
+                    //{
+                    //    //cout << "BSSID = " << BSSID << "\tTA = " << TA << endl;
+                    //    GraphFunction(g, BSSID, RA, SSID);
+                    //}
+                    //else
+                    //{
+                    //    GraphFunction(g, TA, RA, SSID);
+                    //}
+                    
 
                     //cout << "BSSID=" << BSSID << endl;                
                     //cout << "SSID=" << SSID << endl;
@@ -335,7 +354,7 @@ void LogReader(string fileName)
         for (int i = 0; i < size(buffStr); i++)
         {
             getline(fin, buffStr[i]);
-            buffStr[i] = ffunc::FormatFunctions::EraseSymbol(buffStr[i], '\t');
+            buffStr[i] = ffunc::EraseSymbol(buffStr[i], '\t');
         }
 
         for (string b : buffStr)
@@ -343,7 +362,7 @@ void LogReader(string fileName)
             if (!b.empty())
             {
                 string param[2];
-                ffunc::FormatFunctions::Separator(b, param[0], param[1]);
+                ffunc::Separator(b, param[0], param[1]);
 
                 if (param[0] == "Frame")    // записывается отдельно, чтобы не нагружать буфер и стек
                 {
@@ -360,7 +379,7 @@ void LogReader(string fileName)
                         j = 0;
 
                         //string param[2];
-                        ffunc::FormatFunctions::Separator(value, param[0], param[1]);
+                        ffunc::Separator(value, param[0], param[1]);
 
                         ChoiceParam(frame, param[0], param[1]);
 
@@ -382,6 +401,7 @@ void LogReader(string fileName)
 
     Graph g = MACReader(frames);
 
+
     
     
 
@@ -389,7 +409,8 @@ void LogReader(string fileName)
     //cout << endl;
     //PrintGraph(g);
     cout << endl;
-    PrintNetworkGraph(g);
+    vector<Network> networks = CreateNetworks(g);
+    PrintNetworkGraph(g, networks);
 
 
 }

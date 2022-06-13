@@ -10,7 +10,7 @@
 
 #include "FormatFunctions.h"
 
-namespace ffunc = formatfunctions;
+//namespace ffunc = formatfunctions;
 namespace fs = std::filesystem;
 
 namespace filemanager {

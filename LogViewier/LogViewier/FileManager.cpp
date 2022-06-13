@@ -110,7 +110,7 @@ namespace filemanager {
 
             if (strchr(inputCommand.c_str(), ' '))
             {
-                ffunc::FormatFunctions::Separator(inputCommand, fullCommand[0], fullCommand[1], " ");
+                ffunc::Separator(inputCommand, fullCommand[0], fullCommand[1], " ");
             }
             else
             {
