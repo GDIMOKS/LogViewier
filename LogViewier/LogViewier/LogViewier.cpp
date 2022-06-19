@@ -7,6 +7,7 @@
 #include <windows.h>
 #include <map>
 #include <sstream>
+#include <stdio.h>
 
 #include "Frame.h"
 #include "Param.h"
@@ -38,7 +39,12 @@ void PrintStatistics(vector<Frame>&);
 
 Graph MACReader(vector<Frame>&);
 
-void LogReader(string);
+void LogReader(fs::path file);
+
+void LogsTwoFiles(string, string, fs::path, vector<Frame>&);
+
+void LogsOneFile(string, vector<Frame>&);
+
 
 
 int main()
@@ -57,7 +63,7 @@ int main()
 
         if (file.extension() == ".log")
         {
-            LogReader(file.string());
+            LogReader(file);
         }
         else if (file.extension() == ".pcap")
         {
@@ -334,9 +340,94 @@ Graph MACReader(vector<Frame>& frames)
     return g;
 }
 
-void LogReader(string fileName)
+void LogReader(fs::path file)
 {
     vector<Frame> frames;
+    fs::path lastPath = file.parent_path();
+
+    if (file.filename().string().find("_phy") != -1)
+    {
+        string file1 = file.string();
+        string file2 = file1;
+        file2.replace(file2.rfind("phy"), 3, "parser");
+
+        LogsTwoFiles(file1, file2, lastPath, frames);
+    }
+    else if (file.filename().string().find("_parser") != -1)
+    {
+        string file2 = file.string();
+        string file1 = file2;
+        file1.replace(file1.rfind("parser"), 6, "phy");
+
+        LogsTwoFiles(file1, file2, lastPath, frames);
+    }
+    else
+    {
+        LogsOneFile(file.string(), frames);
+    }
+
+    //PrintFrames(frames);
+
+    Graph g = MACReader(frames);
+
+    PrintStatistics(frames);
+    //cout << endl;
+    //PrintGraph(g);
+    cout << endl;
+
+    vector<Network> networks = CreateNetworks(g);
+    PrintNetworkGraph(g, networks);
+}
+
+void LogsTwoFiles(string phyName, string parserName, fs::path lastPath, vector<Frame>& frames)
+{
+    string file1 = phyName;
+    string file2 = parserName;
+    
+    ifstream phyIn;
+    ifstream parserIn;
+    ofstream fout;
+
+    fs::path currentDir = lastPath;
+    currentDir /= "tempFile.log";
+    string tempfile = currentDir.filename().string();
+
+    fout.open(tempfile);
+
+    phyIn.open(file1);
+    parserIn.open(file2);
+
+    while (!phyIn.eof() && !parserIn.eof())
+    {
+        string str;
+        string str1;
+        string str2;
+        string tempstring;
+
+        getline(phyIn, str);
+
+        if (str.empty())
+            break;
+
+        str1 = str.substr(0, str.find("Bits") - 1);
+        str2 = str.substr(str.find("Bits"));
+        parserIn >> tempstring;
+        getline(parserIn, tempstring);
+
+        fout << str1 << "\n\t\t" << str2 << "\n\t" << tempstring << "\n\n";
+    }
+    parserIn.close();
+    phyIn.close();
+
+    fout.close();
+    LogsOneFile(tempfile, frames);
+
+    remove(tempfile.c_str());
+}
+
+void LogsOneFile(string fileName, vector<Frame>& frames)
+{
+    //vector<Frame> frames;
     ifstream fin;
 
     fin.open(fileName);
@@ -364,7 +455,7 @@ void LogReader(string fileName)
                 string param[2];
                 ffunc::Separator(b, param[0], param[1]);
 
-                if (param[0] == "Frame")    // записывается отдельно, чтобы не нагружать буфер и стек
+                if (param[0] == "Frame" || param[0] == "Bits")    // записывается отдельно, чтобы не нагружать буфер и стек
                 {
                     frame.setFrameHex(param[1]);
                     continue;
@@ -396,21 +487,4 @@ void LogReader(string fileName)
             frames.push_back(frame);
     }
     fin.close();
-
-    //PrintFrames(&frames);
-
-    Graph g = MACReader(frames);
-
-
-    
-    
-
-    PrintStatistics(frames);
-    //cout << endl;
-    //PrintGraph(g);
-    cout << endl;
-    vector<Network> networks = CreateNetworks(g);
-    PrintNetworkGraph(g, networks);
-
-
 }
