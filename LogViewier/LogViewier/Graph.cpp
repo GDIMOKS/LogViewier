@@ -248,6 +248,7 @@ void CheckDevice(Vertex& v, string networkSSID)
         {"90:03:B7", "Parrot"},
         {"A0:14:3D", "Parrot"},
         {"38:1D:14", "Skydio"},
+        {"60:60:1F", "DJI"},
     };
 
     map<string, string> otherDevices{
@@ -365,6 +366,7 @@ vector<Network> CreateNetworks(Graph& g)
             continue;
 
         Network n;
+        v.setStatus("AccessPoint");
 
         n.setName(v.getSSID());
         n.setMac(v.getEdgeName());
