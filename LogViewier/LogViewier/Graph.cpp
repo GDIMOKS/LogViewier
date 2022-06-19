@@ -1,4 +1,4 @@
-#include "Graph.h"
+ï»¿#include "Graph.h"
 #pragma once
 
 Vertex setVertex(string edgeName, string out, string in, string ssid)
@@ -249,6 +249,10 @@ void CheckDevice(Vertex& v, string networkSSID)
         {"A0:14:3D", "Parrot"},
         {"38:1D:14", "Skydio"},
         {"60:60:1F", "DJI"},
+        {"10:A4:BE", "Syma"},
+        {"20:F4:1B", "Wltoys"},//"Shenzhen Bilian electronic"}
+        {"94:87:E0", "Xiaomi Communications Co Ltd"},
+        {"B0:41:1D", "ITTIM Technologies"},
     };
 
     map<string, string> otherDevices{
@@ -289,6 +293,17 @@ void CheckDevice(Vertex& v, string networkSSID)
         {"DA:A1:19", "Google, Inc"},
         {"88:A7:3C", "Ragentek Technology Group"},
         {"98:22:EF", "Liteon Technology Corporation"},
+        /*{"08:EA:40","SHENZHEN BILIAN ELECTRONIC CO.ï¼ŒLTD"},
+        {"0C:8C:24","SHENZHEN BILIAN ELECTRONIC CO.ï¼ŒLTD"},
+        {"0C:CF:89","SHENZHEN BILIAN ELECTRONIC CO.ï¼ŒLTD"},
+        {"10:A4:BE","SHENZHEN BILIAN ELECTRONIC CO.ï¼ŒLTD"},
+        {"14:6B:9C","SHENZHEN BILIAN ELECTRONIC CO.ï¼ŒLTD"},
+        {"20:32:33","SHENZHEN BILIAN ELECTRONIC CO.ï¼ŒLTD"},
+        {"20:F4:1B","SHENZHEN BILIAN ELECTRONIC CO.ï¼ŒLTD"},
+        {"28:F3:66","SHENZHEN BILIAN ELECTRONIC CO.ï¼ŒLTD"},
+        {"0C:8C:24","SHENZHEN BILIAN ELECTRONIC CO.ï¼ŒLTD"},
+        {"0C:8C:24","SHENZHEN BILIAN ELECTRONIC CO.ï¼ŒLTD"},
+        {"0C:8C:24","SHENZHEN BILIAN ELECTRONIC CO.ï¼ŒLTD"},*/
 
     };
     
@@ -408,8 +423,8 @@ void PrintNetworkGraph(Graph& g, vector<Network>& networks)
     for (Network& n : networks)
     {
         vector<string> outMacs;
-        cout << "Ñåòü: " << n.getName() << " MAC-àäðåñ: " << n.getMac() << endl;
-        cout << "\tMAC-àäðåñ\t\tÂõ. ôðåéìîâ\tÈñõ. ôðåéìîâ\tÑòàòóñ\t\tÐàñø.ñòàòóñ" << endl;
+        cout << "Ð¡ÐµÑ‚ÑŒ: " << n.getName() << " MAC-Ð°Ð´Ñ€ÐµÑ: " << n.getMac() << endl;
+        cout << "\tMAC-Ð°Ð´Ñ€ÐµÑ\t\tÐ’Ñ…. Ñ„Ñ€ÐµÐ¹Ð¼Ð¾Ð²\tÐ˜ÑÑ…. Ñ„Ñ€ÐµÐ¹Ð¼Ð¾Ð²\tÐ¡Ñ‚Ð°Ñ‚ÑƒÑ\t\tÐ Ð°ÑÑˆ.ÑÑ‚Ð°Ñ‚ÑƒÑ" << endl;
 
         for (Vertex& v : n.g)
         {
@@ -461,7 +476,7 @@ void PrintNetworkGraph(Graph& g, vector<Network>& networks)
 
     if (!others.empty())
     {
-        cout << "\nÀäðåñà áåç ñåòè:\n";
+        cout << "\nÐÐ´Ñ€ÐµÑÐ° Ð±ÐµÐ· ÑÐµÑ‚Ð¸:\n";
         for (Vertex& v : others)
         {
             for (auto& t : v.out)
