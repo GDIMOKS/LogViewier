@@ -47,8 +47,6 @@ namespace filemanager {
             else
             {
                 std::cout << "\nТакой директории не существует! Введите dir для просмотра директорий." << std::endl;
-                //cout << currentDir << endl;
-                //cout << command << endl;
             }
         }
         catch (fs::filesystem_error)

@@ -57,4 +57,13 @@ public:
 	string GetAddress(string, int);
 };
 
+int CountCorrect(vector<Frame>& frames);
+
+void PrintFrames(vector<Frame>& frames);
+
+void ChoiceParam(Frame& frame, string& paramName, string& paramValue);
+
+void PrintStatistics(vector<Frame>& frames, int countNoAddress);
+
+
 #endif //FRAME_H

@@ -99,8 +99,7 @@ namespace formatfunctions {
         return outString;
     }
 
-    std::string FormatFunctions::ToLower(std::string
-        str) {
+    std::string FormatFunctions::ToLower(std::string str) {
         std::string outString = str;
         transform(outString.begin(), outString.end(), outString.begin(), tolower);
 

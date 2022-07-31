@@ -1,42 +1,6 @@
 ﻿#include "Graph.h"
-#pragma once
 
-Vertex setVertex(string edgeName, string out, string in, string ssid)
-{
-    Vertex v;
-    Edge e;
-    e.count = 1;
-
-    v.setEdgeName(edgeName);
-    
-    if (edgeName == "ff:ff:ff:ff:ff:ff")
-    {
-        v.setStatus("Broadcast");
-    }
-
-    if (ssid != "")
-    {
-        v.setSSID(ssid);
-        v.setStatus("AccessPoint");
-    }
-
-    if (out != "")
-    {
-        e.value = out;
-        v.push_out(e);
-    }
-
-    if (in != "")
-    {
-        e.value = in;
-        v.push_in(e);
-    }
-
-
-    return v;
-}
-
-int SearchVertex(Graph& g, string edgeName)
+int Search(Graph& g, string edgeName)
 {
     int iter = -1;
 
@@ -52,7 +16,7 @@ int SearchVertex(Graph& g, string edgeName)
     return iter;
 }
 
-int SearchEdge(vector<Edge>& v, string mac)
+int Search(vector<Edge>& v, string mac)
 {
     int iter = -1;
 
@@ -77,7 +41,7 @@ void CheckMac(Graph& g, string edgeName, string mac, string mode)
     e.value = edgeName;
     e.count++;
 
-    int iter = SearchVertex(g, mac); // search vertex in graph
+    int iter = Search(g, mac); // search vertex in graph
     if (iter != -1) // found
     {
         if (e.value == "")
@@ -92,9 +56,9 @@ void CheckMac(Graph& g, string edgeName, string mac, string mode)
     else // not found
     {
         if (mode == "in")
-            g.push_back(setVertex(mac, edgeName)); // add incoming vertex in graph
+            g.push_back(Vertex(mac, edgeName)); // add incoming vertex in graph
         else if (mode == "out")
-            g.push_back(setVertex(mac, "", edgeName));
+            g.push_back(Vertex(mac, "", edgeName));
     }
     
 }
@@ -114,7 +78,7 @@ void PrintGraph(Graph& g)
         
         for (auto& t : v.out)
         {
-            int iter = SearchVertex(g, t.value);
+            int iter = Search(g, t.value);
             //if (iter != 0)
             cout << v.getEdgeName() << " -> " << t.value << " : " << t.count << "\t" << v.getExtStatus() << "\t" /* << g[iter].getExtStatus() */ << endl;
         }
@@ -124,12 +88,12 @@ void PrintGraph(Graph& g)
 
 void GraphFunction(Graph& g, string edgeName, string outMac, string ssid)
 {
-    int iter = SearchVertex(g, edgeName); // search current vertex
+    int iter = Search(g, edgeName); // search current vertex
 
     if (iter == -1) // current vertex not found
     {
         if (edgeName != "")
-            g.push_back(setVertex(edgeName, outMac, "", ssid));
+            g.push_back(Vertex(edgeName, outMac, "", ssid));
 
         CheckMac(g, edgeName, outMac, "out");
 
@@ -149,7 +113,7 @@ void GraphFunction(Graph& g, string edgeName, string outMac, string ssid)
         return;
    
     Edge e;
-    int vOut = SearchEdge(v.out, outMac);
+    int vOut = Search(v.out, outMac);
 
     if (vOut == -1) // not found
     {
@@ -162,9 +126,9 @@ void GraphFunction(Graph& g, string edgeName, string outMac, string ssid)
     {
         v.out[vOut].count++;
 
-        auto iter1 = SearchVertex(g, outMac);
+        auto iter1 = Search(g, outMac);
 
-        auto vIn = SearchEdge(g[iter1].in, edgeName);
+        auto vIn = Search(g[iter1].in, edgeName);
         if (vIn == -1) // not found
         {
             e.value = edgeName;
@@ -183,7 +147,7 @@ void PrintEdgeParameters(Graph& g, vector<Edge>& v, Edge& e, int iterator, strin
 {
     cout << "\t" << e.value << "\t";
 
-    int iter = SearchEdge(v, e.value);
+    int iter = Search(v, e.value);
         
     if (mode == "out")
     {
@@ -205,6 +169,37 @@ void PrintEdgeParameters(Graph& g, vector<Edge>& v, Edge& e, int iterator, strin
     }
 
     cout << "\t\t" << g[iterator].getStatus() << "  \t" << g[iterator].getExtStatus() << endl;
+}
+
+void PrintEdgeParameters(Graph& g, Vertex& v)
+{
+    int inSum = 0;
+    int outSum = 0;
+
+    for (Edge& t : v.out)
+    {
+        for (Vertex& vr : g)
+        {
+            if (vr.getEdgeName() == t.value)
+            {
+                outSum += t.count;
+            }
+        }
+        
+    }
+
+    for (Edge& t : v.in)
+    {
+        for (Vertex& vr : g)
+        {
+            if (vr.getEdgeName() == t.value)
+            {
+                inSum += t.count;
+            }
+        }
+        
+    }
+    cout << "\t" << v.getEdgeName() << "\t" << inSum << "\t\t" << outSum << "\t\t" << v.getStatus() << "\t\t" << v.getExtStatus() << endl;
 }
 
 string SearchInDB(map<string, string>& db, string mac)
@@ -391,7 +386,7 @@ vector<Network> CreateNetworks(Graph& g)
 
         for (Edge& t : v.out)
         {
-            int iterOut = SearchVertex(g, t.value);
+            int iterOut = Search(g, t.value);
             UpdateStatus(g[iterOut]);
             CheckDevice(g[iterOut], n.getName());
             n.g.push_back(g[iterOut]);
@@ -399,10 +394,10 @@ vector<Network> CreateNetworks(Graph& g)
 
         for (Edge& t : v.in)
         {
-            int exist = SearchVertex(n.g, t.value);
+            int exist = Search(n.g, t.value);
             if (exist == -1)
             {
-                int iterIn = SearchVertex(g, t.value);
+                int iterIn = Search(g, t.value);
                 UpdateStatus(g[iterIn]);
                 CheckDevice(g[iterIn], n.getName());
                 n.g.push_back(g[iterIn]);
@@ -430,25 +425,15 @@ void PrintNetworkGraph(Graph& g, vector<Network>& networks)
         {
             if (v.getStatus() != "AccessPoint")
                 continue;
+       
+            PrintEdgeParameters(n.g, v);
 
-            int inSum = 0;
-            int outSum = 0;
-
-            for (Edge& t : v.out)
-            {
-                outSum += t.count;
-            }
-
-            for (Edge& t : v.in)
-            {
-                inSum += t.count;
-            }
-
-            cout << "\t" << v.getEdgeName() << "\t" << inSum << "\t\t" << outSum << "\t\t" << v.getStatus() << "\t" << v.getExtStatus() << endl;
             for (Edge& t : v.out)
             {
                 outMacs.push_back(t.value);
-                int iterOut = SearchVertex(n.g, t.value);
+                int iterOut = Search(n.g, t.value);
+
+                //PrintEdgeParameters(n.g, n.g[iterOut]);
                 PrintEdgeParameters(n.g, v.in, t, iterOut, "out");
             }
 
@@ -456,7 +441,9 @@ void PrintNetworkGraph(Graph& g, vector<Network>& networks)
             {
                 if (find(outMacs.begin(), outMacs.end(), t.value) == outMacs.end())
                 {
-                    int iterIn = SearchVertex(n.g, t.value);
+                    int iterIn = Search(n.g, t.value);
+
+                    //PrintEdgeParameters(n.g, n.g[iterIn]);
                     PrintEdgeParameters(n.g, v.out, t, iterIn, "in");
                 }
             }
@@ -481,7 +468,7 @@ void PrintNetworkGraph(Graph& g, vector<Network>& networks)
         {
             for (auto& t : v.out)
             {
-                int iter = SearchVertex(g, t.value);
+                int iter = Search(g, t.value);
                 cout << v.getEdgeName() << " -> " << t.value << " : " << t.count << "\t1st mac: " << v.getExtStatus() << " \t2nd mac: " << g[iter].getExtStatus() << endl;
             }
         }

@@ -78,3 +78,76 @@ string Frame::GetAddress(string frameHex, int position)
 
     return address;
 }
+
+int CountCorrect(vector<Frame>& frames)
+{
+    int sum = 0;
+
+    for (Frame f : frames)
+    {
+        if (f.getCorrect() == true)
+        {
+            sum++;
+        }
+    }
+
+    return sum;
+}
+
+void PrintFrames(vector<Frame>& frames)
+{
+    for (Frame f : frames)
+    {
+        cout << f.getFrameName() << "\tOffset=" << f.getOffset() << ", BW=" << f.getBW() << ", MCS=" << f.getMCS() << ", Size=" << f.getSize() << endl;
+        cout << "\t\tFrame=" << f.getFrameHex() << "\n\t\t";
+        f.PrintParams();
+        cout << "\n\n";
+    }
+}
+
+void ChoiceParam(Frame& frame, string& paramName, string& paramValue)
+{
+    if (paramName == "Offset")
+    {
+        frame.setOffset(paramValue);
+        return;
+    }
+    else if (paramName == "BW")
+    {
+        frame.setBW(paramValue);
+        return;
+    }
+    else if (paramName == "MCS")
+    {
+        frame.setMCS(paramValue);
+        return;
+    }
+    else if (paramName == "Size")
+    {
+        frame.setSize(paramValue);
+        return;
+    }
+    /*else if (paramName == "Frame")
+    {
+        frame.setFrameHex(paramValue);
+        return;
+    }*/
+
+    if (paramName == "FCS" && paramValue == "Fail")
+    {
+        frame.setCorrect(false);
+    }
+
+    frame.MakeParam(paramName, paramValue);
+}
+
+void PrintStatistics(vector<Frame>& frames, int countNoAddress)
+{
+    int correctFrames = CountCorrect(frames);
+    double correctPercent = correctFrames * 100.0 / frames.size();
+
+    cout << "\nВсего фреймов: " << frames.size() << endl;
+    cout << "Из них корректных: " << correctFrames << endl;
+    cout << "Процент корректности фреймов: " << correctPercent << "%" << endl;
+    cout << "Фреймов без адресной информации: " << countNoAddress << endl;
+}

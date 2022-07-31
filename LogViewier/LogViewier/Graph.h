@@ -16,6 +16,7 @@ struct Edge {
     int count = 0;
     string value;
 };
+
 struct Vertex {
 private:
     string name;
@@ -23,6 +24,39 @@ private:
     string status = "";
     string extendedStatus = "";
 public:
+    Vertex() {
+
+    }
+    Vertex(string edgeName, string out="", string in="", string ssid="") {
+        Edge e;
+        e.count = 1;
+
+        setEdgeName(edgeName);
+
+        if (edgeName == "ff:ff:ff:ff:ff:ff")
+        {
+            setStatus("Broadcast");
+        }
+
+        if (ssid != "")
+        {
+            setSSID(ssid);
+            setStatus("AccessPoint");
+        }
+
+        if (out != "")
+        {
+            e.value = out;
+            push_out(e);
+        }
+
+        if (in != "")
+        {
+            e.value = in;
+            push_in(e);
+        }
+    }
+
     vector<Edge> in;
     vector<Edge> out;
 
@@ -62,23 +96,21 @@ public:
     string getMac() { return macAP; }
 };
 
-Vertex setVertex(string, string="", string="", string="");
+int Search(Graph&, string);
 
-int SearchVertex(Graph&, string );
-
-int SearchEdge(vector<Edge>&, string );
+int Search(vector<Edge>&, string);
 
 void CheckMac(Graph&, string, string, string="out");
 
 void PrintGraph(Graph&);
-
-void NewPrintGraph(Graph&, Graph&);
 
 void GraphFunction(Graph&, string, string, string="");
 
 void PrintNetworkGraph(Graph&, vector<Network>&);
 
 void PrintEdgeParameters(Graph&, vector<Edge>&, Edge&, int, string);
+
+void PrintEdgeParameters(Graph&, Vertex& v);
 
 void CheckDevice(Vertex&, string);
 
