@@ -33,6 +33,8 @@ void CalculateFeatures(vector<Frame>& frames);
 
 void DefineDevice(vector<Frame>& frames);
 
+vector<ExtFrame> DefragmentFrame(vector<ExtFrame>& frames);
+
 
 
 int main()
@@ -68,7 +70,52 @@ int main()
     return 0;
 }
 
+vector<ExtFrame> DefragmentFrame(vector<ExtFrame>& frames)
+{
+    vector<ExtFrame> tails;
+    vector<ExtFrame> heads;
+    vector<ExtFrame> bodies;
+    vector<ExtFrame> fullFrames;
 
+    for (ExtFrame& f : frames)
+        if (f.getHFlags()[5] == '0' && f.getFrNum() == 0)
+            fullFrames.push_back(f);
+        else if (f.getHFlags()[5] != '0' && f.getFrNum() == 0)
+            heads.push_back(f);
+        else if (f.getHFlags()[5] != '0' && f.getFrNum() != 0)
+            bodies.push_back(f);
+        else if (f.getHFlags()[5] == '0' && f.getFrNum() != 0)
+            tails.push_back(f); 
+
+    for (ExtFrame& head : heads)
+        for (ExtFrame& body : bodies)
+            if (head.getSeqNum() == body.getSeqNum())
+            {
+                head.setSize(to_string(atoi(head.getSize().c_str()) + atoi(body.getSize().c_str()) - 28));
+                head.setOffset(to_string(atof(head.getOffset().c_str()) + atof(body.getOffset().c_str())));
+                break;
+            }
+
+    for (ExtFrame& head : heads)
+        for (ExtFrame& tail : tails)
+            if (head.getSeqNum() == tail.getSeqNum())
+            {
+                head.setSize(to_string(atoi(head.getSize().c_str()) + atoi(tail.getSize().c_str()) - 28));
+                head.setOffset(to_string(atof(head.getOffset().c_str()) + atof(tail.getOffset().c_str())));
+
+                string flags = head.getHFlags();
+                flags[5] = tail.getHFlags()[5];
+                head.setHFlags(flags);
+                head.setFrNum(tail.getFrNum());
+
+                break;
+            }
+
+    for (ExtFrame& head : heads)
+        fullFrames.push_back(head);
+
+    return fullFrames;
+}
 
 void DefineDevice(vector<Frame>& frames)
 {
@@ -185,8 +232,27 @@ void DefineDevice(vector<Frame>& frames)
         }
     }
     buffer.clear();
-
     
+
+
+
+    //sort(extF.begin(), extF.end(), cmp);
+
+    //for (ExtFrame e : extF)
+    //{
+    //    cout /* << "\t" << e.getMac() */ << "\t" << e.getSize() << "\t" << e.getOffset() << "  \t" << e.getFrNum() << "\t\t" << e.getSeqNum() << "\t\t" << e.getHFlags() << endl;
+
+    //}
+    
+
+    vector<ExtFrame> fullFrames = DefragmentFrame(extF);
+    
+    for (ExtFrame& e : fullFrames)
+    {
+        cout /* << "\t" << e.getMac() */ << "\t" << e.getSize() << "\t" << e.getOffset() << "  \t" << e.getFrNum() << "\t\t" << e.getSeqNum() << "\t\t" << e.getHFlags() << endl;
+
+    }
+
 
     //cout << "\tsize\toffset\t\tfrnumber\tseqnumber\tflags" << endl;
     //for (ExtFrame e : extF)
@@ -197,7 +263,7 @@ void DefineDevice(vector<Frame>& frames)
 
     vector<Device> devices;
     Device device;
-    for (ExtFrame tmpF : extF)
+    for (ExtFrame tmpF : fullFrames)
     {
         Frame frame;
         frame.setSize(tmpF.getSize());
@@ -436,21 +502,20 @@ void LogReader(fs::path file)
     vector<Frame> frames;
     fs::path lastPath = file.parent_path();
 
+    string file1 = file.string();
+    string file2 = file1;
+
     if (file.filename().string().find("_phy") != -1)
     {
-        string file1 = file.string();
-        string file2 = file1;
         file2.replace(file2.rfind("phy"), 3, "parser");
 
         LogsTwoFiles(file1, file2, lastPath, frames);
     }
     else if (file.filename().string().find("_parser") != -1)
     {
-        string file2 = file.string();
-        string file1 = file2;
-        file1.replace(file1.rfind("parser"), 6, "phy");
+        file2.replace(file2.rfind("parser"), 6, "phy");
 
-        LogsTwoFiles(file1, file2, lastPath, frames);
+        LogsTwoFiles(file2, file1, lastPath, frames);
     }
     else
     {
@@ -549,39 +614,39 @@ void LogsOneFile(string fileName, vector<Frame>& frames)
             buffStr[i] = ffunc::EraseSymbol(buffStr[i], '\t');
         }
 
-        for (string b : buffStr)
+        for (string& b : buffStr)
         {
-            if (!b.empty())
-            {
-                string param[2];
-                ffunc::Separator(b, param[0], param[1]);
+            if (b.empty())
+                continue;
 
-                if (param[0] == "Frame" || param[0] == "Bits")    // записывается отдельно, чтобы не нагружать буфер и стек
+            string param[2];
+            ffunc::Separator(b, param[0], param[1]);
+
+            if (param[0] == "Frame" || param[0] == "Bits")    // записывается отдельно, чтобы не нагружать буфер и стек
+            {
+                frame.setFrameHex(param[1]);
+                continue;
+            }
+
+            for (int i = 0, j = 0; i <= b.length(); i++)
+            {
+                if (b[i] == ',' || b[i] == '\0')
                 {
-                    frame.setFrameHex(param[1]);
+                    value = buffChar;
+                    memset(buffChar, 0, strlen(buffChar));
+                    j = 0;
+
+                    ffunc::Separator(value, param[0], param[1]);
+
+                    ChoiceParam(frame, param[0], param[1]);
+
                     continue;
                 }
 
-                for (int i = 0, j = 0; i <= b.length(); i++)
-                {
-                    if (b[i] == ',' || b[i] == '\0')
-                    {
-                        value = buffChar;
-                        memset(buffChar, 0, strlen(buffChar));
-                        j = 0;
-
-                        //string param[2];
-                        ffunc::Separator(value, param[0], param[1]);
-
-                        ChoiceParam(frame, param[0], param[1]);
-
-                        continue;
-                    }
-
-                    buffChar[j] = b[i];
-                    j++;
-                }
+                buffChar[j] = b[i];
+                j++;
             }
+            
         }
 
         if (frame.getFrameName() != "")
