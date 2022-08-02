@@ -61,7 +61,7 @@ int CountCorrect(vector<Frame>& frames);
 
 void PrintFrames(vector<Frame>& frames);
 
-void ChoiceParam(Frame& frame, string& paramName, string& paramValue);
+void ChoiceParam(Frame& frame, pair<string, string>&);
 
 void PrintStatistics(vector<Frame>& frames, int countNoAddress);
 

@@ -105,40 +105,40 @@ void PrintFrames(vector<Frame>& frames)
     }
 }
 
-void ChoiceParam(Frame& frame, string& paramName, string& paramValue)
+void ChoiceParam(Frame& frame, pair<string, string>& params)
 {
-    if (paramName == "Offset")
+    if (params.first == "Offset")
     {
-        frame.setOffset(paramValue);
+        frame.setOffset(params.second);
         return;
     }
-    else if (paramName == "BW")
+    else if (params.first == "BW")
     {
-        frame.setBW(paramValue);
+        frame.setBW(params.second);
         return;
     }
-    else if (paramName == "MCS")
+    else if (params.first == "MCS")
     {
-        frame.setMCS(paramValue);
+        frame.setMCS(params.second);
         return;
     }
-    else if (paramName == "Size")
+    else if (params.first == "Size")
     {
-        frame.setSize(paramValue);
+        frame.setSize(params.second);
         return;
     }
-    /*else if (paramName == "Frame")
+    else if (params.first == "Frame" || params.first == "Bits")
     {
-        frame.setFrameHex(paramValue);
+        frame.setFrameHex(params.second);
         return;
-    }*/
+    }
 
-    if (paramName == "FCS" && paramValue == "Fail")
+    if (params.first == "FCS" && params.second == "Fail")
     {
         frame.setCorrect(false);
     }
 
-    frame.MakeParam(paramName, paramValue);
+    frame.MakeParam(params.first, params.second);
 }
 
 void PrintStatistics(vector<Frame>& frames, int countNoAddress)

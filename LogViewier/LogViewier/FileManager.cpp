@@ -101,18 +101,18 @@ namespace filemanager {
 
         while (inputCommand != "exit")
         {
-            std::string fullCommand[2];
+            std::pair <std::string, std::string> fullCommand;
 
             std::cout << currentDir.string() << ">";
             getline(std::cin, inputCommand);
 
             if (strchr(inputCommand.c_str(), ' '))
             {
-                ffunc::Separator(inputCommand, fullCommand[0], fullCommand[1], " ");
+                ffunc::Separator(inputCommand, fullCommand, " ");
             }
             else
             {
-                fullCommand[0] = inputCommand;
+                fullCommand.first = inputCommand;
             }
 
             if (inputCommand == "dir")
@@ -120,18 +120,18 @@ namespace filemanager {
                 Dir(currentDir);
             }
 
-            if (fullCommand[0] == "cd" && !fullCommand[1].empty())
+            if (fullCommand.first == "cd" && !fullCommand.second.empty())
             {
-                Cd(currentDir, fullCommand[1]);
+                Cd(currentDir, fullCommand.second);
             }
             else if (inputCommand == "cd")
             {
                 std::cout << currentDir.string() << "\n\n";
             }
 
-            if (fullCommand[0] == "type")
+            if (fullCommand.first == "type")
             {
-                if (Type(currentDir, fileDir, fullCommand[1]))
+                if (Type(currentDir, fileDir, fullCommand.second))
                     break;
             }
 

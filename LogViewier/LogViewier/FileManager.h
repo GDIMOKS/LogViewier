@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <string.h>
 #include <string>
+#include <vector>
 
 #include "FormatFunctions.h"
 

@@ -15,6 +15,14 @@ using namespace std;
 struct Edge {
     int count = 0;
     string value;
+
+    /*bool operator==(string a) {
+        return this->value == a;
+    }
+
+    bool operator==(Edge& a) {
+        return this->value == a.value;
+    }*/
 };
 
 struct Vertex {

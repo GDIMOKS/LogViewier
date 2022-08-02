@@ -11,13 +11,33 @@ namespace formatfunctions {
         return str;
     }
 
-    void FormatFunctions::Separator(std::string value, std::string& beforSep, std::string& afterSep, std::string symbol)
+    void FormatFunctions::Separator(std::string value, std::pair<std::string, std::string>& params, std::string symbol)
     {
         size_t pos = value.find(symbol);
 
-        beforSep = value.substr(0, pos);
-        afterSep = value.substr(pos + 1, value.length() - 1);
+        params.first = value.substr(0, pos);
+        params.second = value.substr(pos + 1);
     }
+
+    void FormatFunctions::Separator(std::string value, std::vector<std::string>& fragmentedValues, std::string symbol)
+    {
+        fragmentedValues.clear();
+        size_t pos;
+
+        do {
+            pos = value.find(symbol);
+
+            if (pos == -1)
+                break;
+
+            fragmentedValues.push_back(value.substr(0, pos));
+            value = value.substr(pos + 1);
+        } while (pos != -1);
+
+        fragmentedValues.push_back(value);
+    }
+
+
 
     std::string FormatFunctions::HexToBin(std::string str)
     {
