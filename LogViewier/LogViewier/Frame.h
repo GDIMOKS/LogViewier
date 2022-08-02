@@ -55,13 +55,14 @@ public:
 	string SearchParam(string);// string);
 
 	string GetAddress(string, int);
+
+	void ChoiceParam(pair<string, string>&);
 };
 
 int CountCorrect(vector<Frame>& frames);
 
 void PrintFrames(vector<Frame>& frames);
 
-void ChoiceParam(Frame& frame, pair<string, string>&);
 
 void PrintStatistics(vector<Frame>& frames, int countNoAddress);
 

@@ -79,6 +79,42 @@ string Frame::GetAddress(string frameHex, int position)
     return address;
 }
 
+void Frame::ChoiceParam(pair<string, string>& params)
+{
+    if (params.first == "Offset")
+    {
+        setOffset(params.second);
+        return;
+    }
+    else if (params.first == "BW")
+    {
+        setBW(params.second);
+        return;
+    }
+    else if (params.first == "MCS")
+    {
+        setMCS(params.second);
+        return;
+    }
+    else if (params.first == "Size")
+    {
+        setSize(params.second);
+        return;
+    }
+    else if (params.first == "Frame" || params.first == "Bits")
+    {
+        setFrameHex(params.second);
+        return;
+    }
+
+    if (params.first == "FCS" && params.second == "Fail")
+    {
+        setCorrect(false);
+    }
+
+    MakeParam(params.first, params.second);
+}
+
 int CountCorrect(vector<Frame>& frames)
 {
     int sum = 0;
@@ -103,42 +139,6 @@ void PrintFrames(vector<Frame>& frames)
         f.PrintParams();
         cout << "\n\n";
     }
-}
-
-void ChoiceParam(Frame& frame, pair<string, string>& params)
-{
-    if (params.first == "Offset")
-    {
-        frame.setOffset(params.second);
-        return;
-    }
-    else if (params.first == "BW")
-    {
-        frame.setBW(params.second);
-        return;
-    }
-    else if (params.first == "MCS")
-    {
-        frame.setMCS(params.second);
-        return;
-    }
-    else if (params.first == "Size")
-    {
-        frame.setSize(params.second);
-        return;
-    }
-    else if (params.first == "Frame" || params.first == "Bits")
-    {
-        frame.setFrameHex(params.second);
-        return;
-    }
-
-    if (params.first == "FCS" && params.second == "Fail")
-    {
-        frame.setCorrect(false);
-    }
-
-    frame.MakeParam(params.first, params.second);
 }
 
 void PrintStatistics(vector<Frame>& frames, int countNoAddress)

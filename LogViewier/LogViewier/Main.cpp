@@ -41,7 +41,7 @@ int main()
 {
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
-    //setlocale(LC_ALL, "Russian"); //Cyrillic input from the console does not work
+    //setlocale(LC_ALL, ""); //Cyrillic input from the console does not work
 
     fs::path lastPath = "";
     string command = "";
@@ -628,7 +628,7 @@ void LogsOneFile(string fileName, vector<Frame>& frames)
             for (string p : parameters)
             {
                 ffunc::Separator(p, params);
-                ChoiceParam(frame, params);
+                frame.ChoiceParam(params);
             }
         }
 
