@@ -16,7 +16,7 @@ private:
     string headerFlags;
     string rssi;
 public:
-
+    ExtFrame();
     ExtFrame(Frame&, int, string);
 
     string getMac();
@@ -37,5 +37,7 @@ public:
 
     void Print();
 };
+
+bool cmp(ExtFrame&, ExtFrame&);
 
 #endif

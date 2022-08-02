@@ -1,5 +1,7 @@
 #include "ExtFrame.h"
 
+ExtFrame::ExtFrame(){}
+
 ExtFrame::ExtFrame(Frame& f, int type, string interArrivalTime) {
     mac = f.GetAddress(f.getFrameHex(), 20);
     setSize(f.getSize());
@@ -44,4 +46,14 @@ void ExtFrame::Print()
     cout << "size: " << getSize() << endl;
     cout << "offset: " << getOffset() << endl;
     cout << endl;
+}
+
+bool cmp(ExtFrame& a, ExtFrame& b)
+{
+    if (a.getSeqNum() < b.getSeqNum()) return true;
+    if (a.getSeqNum() > b.getSeqNum()) return false;
+    if (a.getFrNum() < b.getFrNum()) return true;
+    if (a.getFrNum() > b.getFrNum()) return false;
+    if (a.getHFlags() < b.getHFlags()) return true;
+    if (a.getHFlags() > b.getHFlags()) return false;
 }
