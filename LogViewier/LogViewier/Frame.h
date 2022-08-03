@@ -5,8 +5,10 @@
 #include <string.h>
 #include <string>
 #include <vector>
+#include <map>
 
 #include "Param.h"
+#include "FormatFunctions.h"
 
 using namespace std;
 
@@ -21,6 +23,9 @@ private:
 	string frameHex;
 	bool correct = true;
 	Param param;
+
+	int type = -1;
+	int subtype = -1;
 
 	vector<Param> params;
 
@@ -48,11 +53,21 @@ public:
 	bool getCorrect();
 	void setCorrect(bool);
 
+	int getType();
+	void setType(int = -1);
+
+	int getSubtype();
+	void setSubtype(int = -1);
+
+	static map<int, map<int, string>> subtypes;
+
 	void MakeParam(string, string);
 
 	void PrintParams();
 
 	string SearchParam(string);// string);
+
+	map<int, string>::iterator SearchSubtype(pair<int, int>, bool&);
 
 	string GetAddress(string, int);
 
