@@ -7,15 +7,23 @@
 #include <vector>
 
 #include "Frame.h"
+#include "Features.h"
 
 class Device {
 private:
     std::string mac;
+    Features sizeFeatures;
+    Features timeFeatures;
 public:
+    vector<Frame> frames;
+    
     std::string getMac();
     void setMac(std::string value);
 
-    vector<Frame> frames;
+    Features getSizeFeatures();
+    Features getTimeFeatures();
+    void CalculateFeatures();
+
 };
 
 #endif

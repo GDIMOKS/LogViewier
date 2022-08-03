@@ -1,6 +1,23 @@
 #include <iostream>
+#include <iomanip>
 
 #include "Features.h"
+
+Features::Features()
+{
+    minValue = 
+    maxValue = 
+    mean = 
+    meanSq = 
+    rootMeanSq =
+    median = 
+    medianAD = 
+    variance = 
+    stDeviation =
+    pSkewness = 
+    kyrtosys = 
+    skewness = 0;
+}
 
 Features::Features(vector<double>& values) {
     minValue = CalcMin(values);
@@ -130,47 +147,21 @@ double Features::CalcSkewness(vector<double>& values, double mean, double varian
 
 void Features::PrintFeatures()
 {
-    cout << "standard deviation: " << stDeviation << endl;
-    cout << "variance: " << variance << endl;
-    cout << "root mean square: " << rootMeanSq << endl;
-    cout << "m_square: " << meanSq << endl;
-    cout << "p_skewness: " << pSkewness << endl;
-    cout << "kyrtosys: " << kyrtosys << endl;
-    cout << "skewness: " << skewness << endl;
-    cout << "min: " << minValue << "\nmax: " << maxValue << endl;
-    cout << "mean: " << mean << endl;
-    cout << "median: " << median << endl;
-    cout << "medianAD: " << medianAD << endl;
+
+    cout << setw(20) << "standard deviation: " << stDeviation << endl;
+    cout << setw(20) << "variance: " << variance << endl;
+    cout << setw(20) << "root mean square: " << rootMeanSq << endl;
+    cout << setw(20) << "m_square: " << meanSq << endl;
+    cout << setw(20) << "p_skewness: " << pSkewness << endl;
+    cout << setw(20) << "kyrtosys: " << kyrtosys << endl;
+    cout << setw(20) << "skewness: " << skewness << endl;
+    cout << setw(20) << "min: " << minValue << endl;
+    cout << setw(20) << "max: " << maxValue << endl;
+    cout << setw(20) << "mean: " << mean << endl;
+    cout << setw(20) << "median: " << median << endl;
+    cout << setw(20) << "medianAD: " << medianAD << endl;
 
     cout << endl;
 }
 
-void CalculateFeatures(vector<Frame>& frames)
-{
-    if (frames.empty())
-        return;
 
-    vector<double> frameSizes;
-    vector<double> frameOffsets;
-
-    for (Frame f : frames)
-    {
-        if (f.getCorrect())
-        {
-            double size = atof(f.getSize().c_str());
-            double time = atof(f.getOffset().c_str());
-
-            frameSizes.push_back(size);
-            frameOffsets.push_back(time);
-        }
-    }
-
-    Features sizeFeatures = Features(frameSizes);
-    Features timeFeatures = Features(frameOffsets);
-
-    cout << "\nSizes:" << endl;
-    sizeFeatures.PrintFeatures();
-    cout << "\nOffsets:" << endl;
-    timeFeatures.PrintFeatures();
-
-}

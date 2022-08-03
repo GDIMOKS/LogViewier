@@ -5,8 +5,6 @@
 #include <vector>
 #include <algorithm>
 
-#include "Frame.h"
-
 using namespace std;
 
 class Features
@@ -26,6 +24,7 @@ private:
     double skewness;
 
 public:
+    Features();
     Features(vector<double>& values);
 
     double CalcSum(vector<double>& values);
@@ -56,9 +55,5 @@ public:
 
 
 };
-
-
-
-void CalculateFeatures(vector<Frame>& frames);
 
 #endif
