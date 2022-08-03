@@ -20,22 +20,19 @@
 
 namespace fs = std::filesystem;
 using namespace std;
+using DataSet = vector<Device>;
 
-Graph MACReader(vector<Frame>&);
+Graph MACReader(vector<Frame>&, int&);
 
-void LogReader(fs::path file);
+void LogReader(fs::path);
 
 void LogsTwoFiles(string, string, fs::path, vector<Frame>&);
 
 void LogsOneFile(string, vector<Frame>&);
 
-void CalculateFeatures(vector<Frame>& frames);
+DataSet CreateDataset(vector<Frame>&);
 
-void DefineDevice(vector<Frame>& frames);
-
-void DefragmentFrame(vector<ExtFrame>& frames, vector<ExtFrame>& fullFrames);
-
-
+vector<ExtFrame> DefragmentFrames(vector<ExtFrame>&);
 
 int main()
 {
@@ -70,9 +67,9 @@ int main()
     return 0;
 }
 
-void DefragmentFrame(vector<ExtFrame>& frames, vector<ExtFrame>& fullFrames)
+vector<ExtFrame> DefragmentFrames(vector<ExtFrame>& frames)
 {
-    fullFrames.clear();
+    vector<ExtFrame> fullFrames;
     vector<ExtFrame> heads;
     vector<ExtFrame> bodies;
     vector<ExtFrame> tails;
@@ -118,68 +115,26 @@ void DefragmentFrame(vector<ExtFrame>& frames, vector<ExtFrame>& fullFrames)
     for (ExtFrame& head : heads)
         fullFrames.push_back(head);
 
+    return fullFrames;
 }
 
-void DefineDevice(vector<Frame>& frames)
-{
-    map<int, map<int, string>> subtypes
-    {
-        {0,
-            {
-                {0, "Management/Association_Request"},      //3 адреса DA/RA SA/TA BSSID
-                {1, "Management/Association_Response"},     // 3 адреса DA/RA SA/TA BSSID
-                {2, "Management/Reassociation_Request"},    // 3 адреса
-                {3, "Management/Reassociation_Response"},   // 3 адреса
-                {4, "Management/Probe_Request"},            // 3 адреса DA/RA SA/TA BSSID
-                {5, "Management/Probe_Response"},           // 3 адреса DA/RA SA/TA BSSID
-                {6, "Management/Timing_Advertisement"},
-                {8, "Management/Beacon"},                   //3 адреса DA/RA SA/TA BSSID
-                {9, "Management/ATIM"},
-                {10, "Management/Disassociation"},          // 3 адреса
-                {11, "Management/Authentication"},          // 3 адреса DA/RA SA/TA BSSID
-                {12, "Management/Deauthentication"},        // 3 адреса 
-                {13, "Management/Action"}                   // 3 адреса DA/RA SA/TA BSSID
-            }
-        },
-        {1,
-            {
-                {3, "Control/TACK"},
-                {4, "Control/Beamforming_Report_Poll"},     // 2 адреса RA TA
-                {5, "Control/VHT/HE_NDP_Announcement"},     // 2 адреса RA TA
-                {6, "Control/Control_Frame_Extension"},     // 1 адрес RA
-                {7, "Control/Control_Wrapper"},             // 1 адрес RA
-                {8, "Control/Block_Ack_Request"},           // 2 адреса RA TA
-                {9, "Control/Block_Ack"},                   // 2 адреса RA TA
-                {10, "Control/PS_Poll"},                    // 2 адреса BSSID/RA TA
-                {11, "Control/RTS"},                        // 2 адреса RA TA
-                {12, "Control/CTS"},                        // 1 адрес RA
-                {13, "Control/ACK"},                        // 1 адрес RA
-                {14, "Control/CF_End"},
-                {15, "Control/CF_End+CF_ACK"}
-            }
-        },
-        {2,
-            {
-                {0, "Data/Data"},                           // 3 адреса RA/BSSID SA/TA DA
-                {4, "Data/Null"},
-                {8, "Data/QoS_Data"},                       // 4 адреса RA TA DA SA
-                {9, "Data/QoS_Data+CF_ACK"},
-                {10, "Data/QoS_Data+CF_Poll"},
-                {11, "Data/QoS_Data+CF_ACK+CF_Poll"},
-                {12, "Data/QoS_Null"},                      // 3 адреса RA/DA TA SA
-                {14, "Data/QoS+CF_Poll"},
-                {15, "Data/QoS+CF_ACK+CF_Poll"}
-            }
-        }
-    };
-
-    
+DataSet CreateDataset(vector<Frame>& frames)
+{   
     vector<ExtFrame> extF;
     vector<ExtFrame> buffer;
 
     for (int i = 0; i < frames.size(); i++)
     {
         if (!frames[i].getCorrect())
+            continue;
+
+        int type = frames[i].getType();
+        int subType = frames[i].getSubtype();
+
+        if (type == -2)
+            continue;
+
+        if (type == 1 && (subType == 6 || subType == 7 || subType == 12 || subType == 13))
             continue;
 
         double offset;
@@ -190,80 +145,35 @@ void DefineDevice(vector<Frame>& frames)
         }
         else
         {
-            offset = atof(frames[i].getOffset().c_str()) - atof(frames[i-1].getOffset().c_str());
+            offset = atof(frames[i].getOffset().c_str()) - atof(frames[i - 1].getOffset().c_str());
         }
 
+        ExtFrame tf = ExtFrame(frames[i], type, to_string(offset));
 
-        string firstByte = frames[i].getFrameHex().substr(0, 2);
+        bool isExist = false;
 
-        string binFrame = ffunc::HexToBin(firstByte);
-
-        string typeBin = binFrame.substr(4, 2);
-        string subtypeBin = binFrame.substr(0, 4);
-
-        int typeDec = ffunc::BinToDec(typeBin);
-        int subtypeDec = ffunc::BinToDec(subtypeBin);
-
-        auto it = subtypes.at(typeDec).find(subtypeDec);
-
-        if (it != subtypes.at(typeDec).end())
-        {
-            if (typeDec == 1 && (it->first == 6 || it->first == 7 || it->first == 12 || it->first == 13))
-                continue;
-
-            ExtFrame tf = ExtFrame(frames[i], typeDec, to_string(offset));
-
-            bool isExist = false;
-
-            for (ExtFrame e : buffer)
-                if (tf.getFrNum() == e.getFrNum() && tf.getSeqNum() == e.getSeqNum())
-                {
-                    isExist = true;
-                    break;
-                }
-
-            if (!isExist)
-                extF.push_back(tf);
-
-            if (buffer.size() >= 8)
+        for (ExtFrame e : buffer)
+            if (tf.getFrNum() == e.getFrNum() && tf.getSeqNum() == e.getSeqNum())
             {
-                buffer.emplace(buffer.cbegin(), tf);
-                buffer.pop_back();
+                isExist = true;
+                break;
             }
-            else
-                buffer.push_back(tf);
+
+        if (!isExist)
+            extF.push_back(tf);
+
+        if (buffer.size() >= 8)
+        {
+            buffer.emplace(buffer.cbegin(), tf);
+            buffer.pop_back();
         }
+        else
+            buffer.push_back(tf);
+        
     }
     buffer.clear();
-    
 
-
-
-    //sort(extF.begin(), extF.end(), cmp);
-
-    //for (ExtFrame e : extF)
-    //{
-    //    cout /* << "\t" << e.getMac() */ << "\t" << e.getSize() << "\t" << e.getOffset() << "  \t" << e.getFrNum() << "\t\t" << e.getSeqNum() << "\t\t" << e.getHFlags() << endl;
-
-    //}
-    
-
-    vector<ExtFrame> fullFrames;
-    DefragmentFrame(extF, fullFrames);
-    
-    for (ExtFrame& e : fullFrames)
-    {
-        cout /* << "\t" << e.getMac() */ << "\t" << e.getSize() << "\t" << e.getOffset() << "  \t" << e.getFrNum() << "\t\t" << e.getSeqNum() << "\t\t" << e.getHFlags() << endl;
-
-    }
-
-
-    //cout << "\tsize\toffset\t\tfrnumber\tseqnumber\tflags" << endl;
-    //for (ExtFrame e : extF)
-    //{
-    //    if (e.getSeqNum() == 1)
-    //        cout /* << "\t" << e.getMac() */ << "\t" << e.getSize() << "\t" << e.getOffset() << "  \t" << e.getFrNum() << "\t\t" << e.getSeqNum() << "\t\t" << e.getHFlags() << endl;
-    //}
+    vector<ExtFrame> fullFrames = DefragmentFrames(extF);
 
     vector<Device> devices;
     Device device;
@@ -303,75 +213,23 @@ void DefineDevice(vector<Frame>& frames)
     {
         cout << "Device " << d.getMac() << ":" << endl;
 
-        CalculateFeatures(d.frames);
+        d.CalculateFeatures();
+        //cout << "\tStDeviation\tVariance\tRootMeanSq\tM_square\tP_skewness\tKyrtosys\tSkewness\tMin\tMax\tMean\tMedian\tMedianAD" << endl;
+        cout << "Sizes:" << endl;
+        d.getSizeFeatures().PrintFeatures();
 
-        //cout << "\tsize\toffset\t\tfrnumber\tseqnumber\tflags" << endl;
-        //for (ExtFrame t : d.tFrames)
-        //{
-        //    //if (t.seqNumber == 0)
-        //    cout /* << "\t" << t.mac */ << "\t" << t.size << "\t" << t.offset << "  \t" << t.frNumber << "\t\t" << t.seqNumber << "\t\t" << t.headerFlags << endl;
-        //}
-        //cout << endl;
-
+        cout << "Time:" << endl;
+        d.getTimeFeatures().PrintFeatures();
+        cout << endl;
     }
     
+    return devices;
 }
-
 
 Graph MACReader(vector<Frame>& frames, int& countNoAddress)
 {
     Graph g;
     countNoAddress = 0;
-    map<int, map<int, string>> subtypes
-    {
-        {0,
-            {
-                {0, "Management/Association_Request"},      //3 адреса DA/RA SA/TA BSSID
-                {1, "Management/Association_Response"},     // 3 адреса DA/RA SA/TA BSSID
-                {2, "Management/Reassociation_Request"},    // 3 адреса
-                {3, "Management/Reassociation_Response"},   // 3 адреса
-                {4, "Management/Probe_Request"},            // 3 адреса DA/RA SA/TA BSSID
-                {5, "Management/Probe_Response"},           // 3 адреса DA/RA SA/TA BSSID
-                {6, "Management/Timing_Advertisement"},
-                {8, "Management/Beacon"},                   //3 адреса DA/RA SA/TA BSSID
-                {9, "Management/ATIM"},
-                {10, "Management/Disassociation"},          // 3 адреса
-                {11, "Management/Authentication"},          // 3 адреса DA/RA SA/TA BSSID
-                {12, "Management/Deauthentication"},        // 3 адреса 
-                {13, "Management/Action"}                   // 3 адреса DA/RA SA/TA BSSID
-            }
-        },
-        {1,
-            {
-                {3, "Control/TACK"},
-                {4, "Control/Beamforming_Report_Poll"},     // 2 адреса RA TA
-                {5, "Control/VHT/HE_NDP_Announcement"},     // 2 адреса RA TA
-                {6, "Control/Control_Frame_Extension"},     // 1 адрес RA
-                {7, "Control/Control_Wrapper"},             // 1 адрес RA
-                {8, "Control/Block_Ack_Request"},           // 2 адреса RA TA
-                {9, "Control/Block_Ack"},                   // 2 адреса RA TA
-                {10, "Control/PS_Poll"},                    // 2 адреса BSSID/RA TA
-                {11, "Control/RTS"},                        // 2 адреса RA TA
-                {12, "Control/CTS"},                        // 1 адрес RA
-                {13, "Control/ACK"},                        // 1 адрес RA
-                {14, "Control/CF_End"},
-                {15, "Control/CF_End+CF_ACK"}
-            }
-        },
-        {2,
-            {
-                {0, "Data/Data"},                           // 3 адреса RA/BSSID SA/TA DA
-                {4, "Data/Null"},
-                {8, "Data/QoS_Data"},                       // 4 адреса RA TA DA SA
-                {9, "Data/QoS_Data+CF_ACK"},
-                {10, "Data/QoS_Data+CF_Poll"},
-                {11, "Data/QoS_Data+CF_ACK+CF_Poll"},
-                {12, "Data/QoS_Null"},                      // 3 адреса RA/DA TA SA
-                {14, "Data/QoS+CF_Poll"},
-                {15, "Data/QoS+CF_ACK+CF_Poll"}
-            }
-        }
-    };
 
     vector<string> addresses;
     std::vector<string>::iterator iter;
@@ -383,23 +241,10 @@ Graph MACReader(vector<Frame>& frames, int& countNoAddress)
         if (!f.getCorrect())
             continue;
                             
-        string firstByte = f.getFrameHex().substr(0, 2);
-        //string secondByte = f.getFrameHex().substr(2, 2);
+        int type = f.getType();
+        int subType = f.getSubtype();
 
-        string binFrame = ffunc::HexToBin(firstByte);
-
-        /*string flagsFrame = ffunc::HexToBin(secondByte);
-        reverse(flagsFrame.begin(), flagsFrame.end());
-        string direction = flagsFrame.substr(0, 2);*/
-
-        string typeBin = binFrame.substr(4, 2);
-        string subtypeBin = binFrame.substr(0, 4);
-
-        int typeDec = ffunc::BinToDec(typeBin);
-        int subtypeDec = ffunc::BinToDec(subtypeBin);
-
-        auto it = subtypes.at(typeDec).find(subtypeDec);
-        if (it == subtypes.at(typeDec).end())
+        if (type == -2)
         {
             cout << "Тип фрейма #" + f.getFrameName() + " не удалось распознать!\n";
             continue;
@@ -411,17 +256,13 @@ Graph MACReader(vector<Frame>& frames, int& countNoAddress)
         string SSID = "";
         int SSID_length = 0;
 
-        /*cout << f.getFrameName() << "\n";
-        cout << "Type=" << it->second << endl;
-        cout << "RA=" << RA << endl;*/
-
         iter = find(addresses.begin(), addresses.end(), RA);
         if (iter == addresses.end())
         {
             addresses.push_back(RA);
         }
 
-        if (!(typeDec == 1 && (it->first == 6 || it->first == 7 || it->first == 12 || it->first == 13)))
+        if (!(type == 1 && (subType == 6 || subType == 7 || subType == 12 || subType == 13)))
         {
             TA = f.GetAddress(f.getFrameHex(), 20);
 
@@ -429,14 +270,13 @@ Graph MACReader(vector<Frame>& frames, int& countNoAddress)
             {
                 addresses.push_back(f.GetAddress(f.getFrameHex(), 20));
             }
-            //cout << "TA=" << TA << endl;
         }
         else
         {
             countNoAddress++;
         }
 
-        if (typeDec == 0 && it->first == 8)
+        if (type == 0 && subType == 8)
         {
             if (find(addresses.begin(), addresses.end(), f.GetAddress(f.getFrameHex(), 32)) == addresses.end())
             {
@@ -459,7 +299,6 @@ Graph MACReader(vector<Frame>& frames, int& countNoAddress)
 
             //if (BSSID == TA)
             //{
-            //    //cout << "BSSID = " << BSSID << "\tTA = " << TA << endl;
             //    GraphFunction(g, BSSID, RA, SSID);
             //}
             //else
@@ -468,26 +307,12 @@ Graph MACReader(vector<Frame>& frames, int& countNoAddress)
             //}
 
 
-            //cout << "BSSID=" << BSSID << endl;                
-            //cout << "SSID=" << SSID << endl;
         }
         else
         {
             GraphFunction(g, TA, RA);
         }
 
-        /*if (typeDec == 2 && direction == "11")
-        {
-            if (find(addresses.begin(), addresses.end(), f.GetAddress(f.getFrameHex(), 46)) == addresses.end())
-            {
-                addresses.push_back(f.GetAddress(f.getFrameHex(), 46));
-            }
-
-            cout << "DA=" << f.GetAddress(f.getFrameHex(), 32) << endl;
-            cout << "SA=" << f.GetAddress(f.getFrameHex(), 46) << endl;
-        }*/
-
-        //cout << endl << endl;
     }
 
     /*cout << "Адреса участников:\n\n";
@@ -528,8 +353,7 @@ void LogReader(fs::path file)
 
     //PrintFrames(frames);
 
-    DefineDevice(frames);
-
+    DataSet dataset = CreateDataset(frames);
     int countNoAddress;
     Graph g = MACReader(frames, countNoAddress);
 

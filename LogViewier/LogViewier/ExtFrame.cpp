@@ -1,6 +1,10 @@
 #include "ExtFrame.h"
 
-ExtFrame::ExtFrame(){}
+ExtFrame::ExtFrame()
+{
+    seqNumber = 
+    frNumber = 0;
+}
 
 ExtFrame::ExtFrame(Frame& f, int type, string interArrivalTime) {
     mac = f.GetAddress(f.getFrameHex(), 20);
