@@ -5,8 +5,6 @@
 #include <vector>
 #include <filesystem>
 #include <windows.h>
-#include <map>
-#include <sstream>
 #include <stdio.h>
 
 #include "Frame.h"
@@ -32,6 +30,8 @@ void LogsOneFile(string, vector<Frame>&);
 
 DataSet CreateDataset(vector<Frame>&);
 
+DataSet CreateDataset();
+
 vector<ExtFrame> DefragmentFrames(vector<ExtFrame>&);
 
 int main()
@@ -39,6 +39,8 @@ int main()
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
     //setlocale(LC_ALL, ""); //Cyrillic input from the console does not work
+
+    //CreateDataset();
 
     fs::path lastPath = "";
     string command = "";
@@ -69,6 +71,71 @@ int main()
 
 vector<ExtFrame> DefragmentFrames(vector<ExtFrame>& frames)
 {
+    /*
+    vector<ExtFrame*> fullFrames;
+    vector<ExtFrame*> heads;
+    vector<ExtFrame*> bodies;
+    vector<ExtFrame*> tails;
+
+    ExtFrame* exPtr;
+
+    for (ExtFrame& f : frames)
+    {
+        if (f.getHFlags()[5] == '0' && f.getFrNum() == 0)
+        {
+            ExtFrame fr = f;
+            fullFrames.push_back(&fr);
+        }
+        else if (f.getHFlags()[5] != '0' && f.getFrNum() == 0)
+        {
+            //exPtr = &f;
+            ExtFrame fr = f;
+            heads.push_back(&fr);
+            fullFrames.push_back(&fr);
+        }
+        else if (f.getHFlags()[5] != '0' && f.getFrNum() != 0)
+        {
+            bodies.push_back(&f);
+        }
+        else if (f.getHFlags()[5] == '0' && f.getFrNum() != 0)
+        {
+            tails.push_back(&f);
+        }
+    }
+
+    if (((heads.size() != 0)) && (bodies.size() != 0))
+        for (ExtFrame* head : heads)
+        {
+            for (ExtFrame* body : bodies)
+                if ((*head).getSeqNum() == (*body).getSeqNum())
+                {
+                    (*head).setSize(to_string(atoi((*head).getSize().c_str()) + atoi((*body).getSize().c_str())));
+                    //head.setOffset(to_string(atof(head.getOffset().c_str()) + atof(body.getOffset().c_str())));
+
+                    break;
+                }
+        }
+
+    if ((heads.size()!=0) && (tails.size()!=0))
+        for (ExtFrame* head : heads)
+            for (ExtFrame* tail : tails)
+                if ((*head).getSeqNum() == (*tail).getSeqNum())
+                {
+                    (*head).setSize(to_string(atoi((*head).getSize().c_str()) + atoi((*tail).getSize().c_str())));
+                    //head.setOffset(to_string(atof(head.getOffset().c_str()) + atof(tail.getOffset().c_str())));
+
+                    string flags = (*head).getHFlags();
+                    flags[5] = (*tail).getHFlags()[5];
+                    (*head).setHFlags(flags);
+                    cout << (*tail).getFrNum();
+                    (*head).setFrNum((*tail).getFrNum());
+
+                    break;
+                }
+
+    return frames;
+    */
+
     vector<ExtFrame> fullFrames;
     vector<ExtFrame> heads;
     vector<ExtFrame> bodies;
@@ -76,21 +143,30 @@ vector<ExtFrame> DefragmentFrames(vector<ExtFrame>& frames)
 
     for (ExtFrame& f : frames)
         if (f.getHFlags()[5] == '0' && f.getFrNum() == 0)
+        {
             fullFrames.push_back(f);
+        }
         else if (f.getHFlags()[5] != '0' && f.getFrNum() == 0)
+        {
             heads.push_back(f);
+        }
         else if (f.getHFlags()[5] != '0' && f.getFrNum() != 0)
+        {
             bodies.push_back(f);
+        }
         else if (f.getHFlags()[5] == '0' && f.getFrNum() != 0)
-            tails.push_back(f); 
+        {
+            tails.push_back(f);
+        }
+            
 
     if (!heads.empty() && !bodies.empty())
         for (ExtFrame& head : heads)
             for (ExtFrame& body : bodies)
                 if (head.getSeqNum() == body.getSeqNum())
                 {
-                    head.setSize(to_string(atoi(head.getSize().c_str()) + atoi(body.getSize().c_str()) - 28));
-                    head.setOffset(to_string(atof(head.getOffset().c_str()) + atof(body.getOffset().c_str())));
+                    head.setSize(to_string(atoi(head.getSize().c_str()) + atoi(body.getSize().c_str())));
+                    //head.setOffset(to_string(atof(head.getOffset().c_str()) + atof(body.getOffset().c_str())));
                 
                     break;
                 }
@@ -100,8 +176,8 @@ vector<ExtFrame> DefragmentFrames(vector<ExtFrame>& frames)
             for (ExtFrame& tail : tails)
                 if (head.getSeqNum() == tail.getSeqNum())
                 {
-                    head.setSize(to_string(atoi(head.getSize().c_str()) + atoi(tail.getSize().c_str()) - 28));
-                    head.setOffset(to_string(atof(head.getOffset().c_str()) + atof(tail.getOffset().c_str())));
+                    head.setSize(to_string(atoi(head.getSize().c_str()) + atoi(tail.getSize().c_str())));
+                    //head.setOffset(to_string(atof(head.getOffset().c_str()) + atof(tail.getOffset().c_str())));
 
                     string flags = head.getHFlags();
                     flags[5] = tail.getHFlags()[5];
@@ -114,8 +190,86 @@ vector<ExtFrame> DefragmentFrames(vector<ExtFrame>& frames)
 
     for (ExtFrame& head : heads)
         fullFrames.push_back(head);
-
+    
     return fullFrames;
+}
+
+DataSet CreateDataset()
+{
+    vector<ExtFrame> extF;
+
+    ifstream fin;
+    fin.open("1.txt");
+    while (!fin.eof())
+    {
+        string mac;
+        string size;
+        string offset;
+        string flags;
+        string seqnum;
+        string frnum;
+        fin >> mac >> size >> offset >> flags >> seqnum >> frnum;
+        //cout << mac << "\t" << size << "\t" << offset << "\t" << flags << "\t" << seqnum << "\t" << frnum << endl;
+        ExtFrame ex;
+        ex.setMac(mac);
+        ex.setSize(size);
+        ex.setOffset(offset);
+        ex.setHFlags(flags);
+        ex.setSeqNum(atoi(seqnum.c_str()));
+        ex.setFrNum(atoi(frnum.c_str()));
+        extF.push_back(ex);
+    }
+    fin.close();
+
+    vector<ExtFrame> fullFrames = DefragmentFrames(extF);
+
+    //for (ExtFrame& f : fullFrames)
+    //{
+    //    f.Print();
+    //}
+
+    vector<Device> devices;
+    Device device;
+    for (ExtFrame frame : fullFrames)
+    {
+        //Frame frame;
+        //frame.setSize(tmpF.getSize());
+        //frame.setOffset(tmpF.getOffset());
+
+        bool isExist = false;
+        int j;
+
+        for (int i = 0; i < devices.size(); i++)
+        {
+            if (devices[i].getMac() == frame.getMac())
+            {
+                isExist = true;
+                j = i;
+                break;
+            }
+        }
+
+        if (isExist)
+        {
+            devices[j].frames.push_back(frame);
+        }
+        else
+        {
+            device.setMac(frame.getMac());
+            device.frames.push_back(frame);
+            devices.push_back(device);
+        }
+    }
+
+
+    for (Device d : devices)
+    {
+        d.CalculateFeatures();
+        d.PrintFeatures();
+        cout << endl;
+    }
+
+    return devices;
 }
 
 DataSet CreateDataset(vector<Frame>& frames)
@@ -137,18 +291,7 @@ DataSet CreateDataset(vector<Frame>& frames)
         if (type == 1 && (subType == 6 || subType == 7 || subType == 12 || subType == 13))
             continue;
 
-        double offset;
-
-        if (i == 0)
-        {
-            offset = atof(frames[i].getOffset().c_str());
-        }
-        else
-        {
-            offset = atof(frames[i].getOffset().c_str()) - atof(frames[i - 1].getOffset().c_str());
-        }
-
-        ExtFrame tf = ExtFrame(frames[i], type, to_string(offset));
+        ExtFrame tf = ExtFrame(frames[i]);//, to_string(offset));
 
         bool isExist = false;
 
@@ -172,23 +315,37 @@ DataSet CreateDataset(vector<Frame>& frames)
         
     }
     buffer.clear();
+    ofstream fout;
+    fout.open("1.txt");
+    for (ExtFrame& frame : extF)
+    {
+        fout << frame.getMac() << endl;
+        fout << frame.getSize() << endl;
+        fout << frame.getOffset() << endl;
+        fout << frame.getHFlags() << endl;
+        fout << frame.getSeqNum() << endl;
+        fout << frame.getFrNum() << endl;
+    }
 
+    fout.close();
     vector<ExtFrame> fullFrames = DefragmentFrames(extF);
+
+
 
     vector<Device> devices;
     Device device;
-    for (ExtFrame tmpF : fullFrames)
+    for (ExtFrame frame : fullFrames)
     {
-        Frame frame;
-        frame.setSize(tmpF.getSize());
-        frame.setOffset(tmpF.getOffset());
+        //Frame frame;
+        //frame.setSize(tmpF.getSize());
+        //frame.setOffset(tmpF.getOffset());
 
         bool isExist = false;
         int j;
 
         for (int i = 0; i < devices.size(); i++)
         {
-            if (devices[i].getMac() == tmpF.getMac())
+            if (devices[i].getMac() == frame.getMac())
             {
                 isExist = true;
                 j = i;
@@ -202,7 +359,7 @@ DataSet CreateDataset(vector<Frame>& frames)
         }
         else
         {
-            device.setMac(tmpF.getMac());
+            device.setMac(frame.getMac());
             device.frames.push_back(frame);
             devices.push_back(device);
         }
@@ -211,15 +368,8 @@ DataSet CreateDataset(vector<Frame>& frames)
 
     for (Device d : devices)
     {
-        cout << "Device " << d.getMac() << ":" << endl;
-
         d.CalculateFeatures();
-        //cout << "\tStDeviation\tVariance\tRootMeanSq\tM_square\tP_skewness\tKyrtosys\tSkewness\tMin\tMax\tMean\tMedian\tMedianAD" << endl;
-        cout << "Sizes:" << endl;
-        d.getSizeFeatures().PrintFeatures();
-
-        cout << "Time:" << endl;
-        d.getTimeFeatures().PrintFeatures();
+        d.PrintFeatures();
         cout << endl;
     }
     
@@ -354,20 +504,22 @@ void LogReader(fs::path file)
     //PrintFrames(frames);
 
     DataSet dataset = CreateDataset(frames);
-    int countNoAddress;
-    Graph g = MACReader(frames, countNoAddress);
 
-    
 
-    cout << endl;
+    //int countNoAddress;
+    //Graph g = MACReader(frames, countNoAddress);
 
-    PrintStatistics(frames, countNoAddress);
+    //
+
     //cout << endl;
-    //PrintGraph(g);
-    cout << endl;
 
-    vector<Network> networks = CreateNetworks(g);
-    PrintNetworkGraph(g, networks);
+    //PrintStatistics(frames, countNoAddress);
+    ////cout << endl;
+    ////PrintGraph(g);
+    //cout << endl;
+
+    //vector<Network> networks = CreateNetworks(g);
+    //PrintNetworkGraph(g, networks);
 
 
     cout << endl;

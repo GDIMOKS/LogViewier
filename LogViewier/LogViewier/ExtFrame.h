@@ -17,7 +17,7 @@ private:
     string rssi;
 public:
     ExtFrame();
-    ExtFrame(Frame&, int, string);
+    ExtFrame(Frame&);//, string);
 
     string getMac();
     void setMac(string);

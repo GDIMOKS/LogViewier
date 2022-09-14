@@ -6,18 +6,19 @@ ExtFrame::ExtFrame()
     frNumber = 0;
 }
 
-ExtFrame::ExtFrame(Frame& f, int type, string interArrivalTime) {
+ExtFrame::ExtFrame(Frame& f){//, string interArrivalTime) {
     mac = f.GetAddress(f.getFrameHex(), 20);
     setSize(f.getSize());
-    setOffset(interArrivalTime);
+    //setOffset(interArrivalTime);
+    setOffset(f.getOffset());
     headerFlags = ffunc::HexToBin(f.getFrameHex().substr(2, 2));
 
     string seqControl;
     string seqControlBin;
 
-    if (type == 0 || type == 2)
+    if (f.getType() == 0 || f.getType() == 2)
         seqControl = f.getFrameHex().substr(46, 2) + f.getFrameHex().substr(44, 2);
-    else if (type == 1)
+    else if (f.getType() == 1)
         seqControl = f.getFrameHex().substr(34, 2) + f.getFrameHex().substr(32, 2);
 
     seqControlBin = ffunc::HexToBin(seqControl);

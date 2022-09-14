@@ -34,6 +34,19 @@ Features::Features(vector<double>& values) {
     skewness = CalcSkewness(values, mean, variance);
 }
 
+double Features::getMinValue() { return minValue; }
+double Features::getMaxValue() { return maxValue; }
+double Features::getMean() { return mean; }
+double Features::getMeanSq() { return meanSq; }
+double Features::getRootMSq() { return rootMeanSq; }
+double Features::getMedian() { return median; }
+double Features::getMedianAD() { return medianAD; }
+double Features::getVariance() { return variance; }
+double Features::getStDeviation() { return stDeviation; }
+double Features::getPSkewness() { return pSkewness; }
+double Features::getKyrtosis() { return kyrtosys; }
+double Features::getSkewness() { return skewness; }
+
 double Features::CalcSum(vector<double>& values)
 {
     double sum = 0;

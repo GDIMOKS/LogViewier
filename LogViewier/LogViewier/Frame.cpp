@@ -42,7 +42,7 @@ void Frame::setType(int value)
         type = value;
         return;
     }
-
+    //cout << getFrameHex();
     string firstByte = getFrameHex().substr(0, 2);
     string binFrame = ffunc::HexToBin(firstByte);
 

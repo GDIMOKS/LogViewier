@@ -27,6 +27,19 @@ public:
     Features();
     Features(vector<double>& values);
 
+    double getMinValue();
+    double getMaxValue();
+    double getMean();
+    double getMeanSq();
+    double getRootMSq();
+    double getMedian();
+    double getMedianAD();
+    double getVariance();
+    double getStDeviation();
+    double getPSkewness();
+    double getKyrtosis();
+    double getSkewness();
+
     double CalcSum(vector<double>& values);
 
     double CalcSquareSum(vector<double>& values);

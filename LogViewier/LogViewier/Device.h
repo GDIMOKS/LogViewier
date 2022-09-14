@@ -5,6 +5,7 @@
 
 #include <iostream>
 #include <vector>
+#include <iomanip>
 
 #include "Frame.h"
 #include "Features.h"
@@ -23,6 +24,8 @@ public:
     Features getSizeFeatures();
     Features getTimeFeatures();
     void CalculateFeatures();
+    
+    void PrintFeatures();
 
 };
 
