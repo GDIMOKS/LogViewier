@@ -71,27 +71,23 @@ int main()
 
 vector<ExtFrame> DefragmentFrames(vector<ExtFrame>& frames)
 {
-    /*
+    
     vector<ExtFrame*> fullFrames;
     vector<ExtFrame*> heads;
     vector<ExtFrame*> bodies;
     vector<ExtFrame*> tails;
 
-    ExtFrame* exPtr;
-
     for (ExtFrame& f : frames)
     {
         if (f.getHFlags()[5] == '0' && f.getFrNum() == 0)
         {
-            ExtFrame fr = f;
-            fullFrames.push_back(&fr);
+            fullFrames.push_back(&f);
         }
         else if (f.getHFlags()[5] != '0' && f.getFrNum() == 0)
         {
-            //exPtr = &f;
-            ExtFrame fr = f;
-            heads.push_back(&fr);
-            fullFrames.push_back(&fr);
+            heads.push_back(&f);
+            
+            fullFrames.push_back(&f);
         }
         else if (f.getHFlags()[5] != '0' && f.getFrNum() != 0)
         {
@@ -103,11 +99,11 @@ vector<ExtFrame> DefragmentFrames(vector<ExtFrame>& frames)
         }
     }
 
-    if (((heads.size() != 0)) && (bodies.size() != 0))
+    if (!heads.empty() && !bodies.empty())
         for (ExtFrame* head : heads)
         {
             for (ExtFrame* body : bodies)
-                if ((*head).getSeqNum() == (*body).getSeqNum())
+                if ((*head).getSeqNum() == (*body).getSeqNum() && (*head).getMac() == (*body).getMac())
                 {
                     (*head).setSize(to_string(atoi((*head).getSize().c_str()) + atoi((*body).getSize().c_str())));
                     //head.setOffset(to_string(atof(head.getOffset().c_str()) + atof(body.getOffset().c_str())));
@@ -116,10 +112,10 @@ vector<ExtFrame> DefragmentFrames(vector<ExtFrame>& frames)
                 }
         }
 
-    if ((heads.size()!=0) && (tails.size()!=0))
+    if (!heads.empty() && !tails.empty())
         for (ExtFrame* head : heads)
             for (ExtFrame* tail : tails)
-                if ((*head).getSeqNum() == (*tail).getSeqNum())
+                if ((*head).getSeqNum() == (*tail).getSeqNum() && (*head).getMac() == (*tail).getMac())
                 {
                     (*head).setSize(to_string(atoi((*head).getSize().c_str()) + atoi((*tail).getSize().c_str())));
                     //head.setOffset(to_string(atof(head.getOffset().c_str()) + atof(tail.getOffset().c_str())));
@@ -127,71 +123,22 @@ vector<ExtFrame> DefragmentFrames(vector<ExtFrame>& frames)
                     string flags = (*head).getHFlags();
                     flags[5] = (*tail).getHFlags()[5];
                     (*head).setHFlags(flags);
-                    cout << (*tail).getFrNum();
                     (*head).setFrNum((*tail).getFrNum());
 
                     break;
                 }
 
-    return frames;
-    */
+ 
 
-    vector<ExtFrame> fullFrames;
-    vector<ExtFrame> heads;
-    vector<ExtFrame> bodies;
-    vector<ExtFrame> tails;
-
-    for (ExtFrame& f : frames)
-        if (f.getHFlags()[5] == '0' && f.getFrNum() == 0)
-        {
-            fullFrames.push_back(f);
-        }
-        else if (f.getHFlags()[5] != '0' && f.getFrNum() == 0)
-        {
-            heads.push_back(f);
-        }
-        else if (f.getHFlags()[5] != '0' && f.getFrNum() != 0)
-        {
-            bodies.push_back(f);
-        }
-        else if (f.getHFlags()[5] == '0' && f.getFrNum() != 0)
-        {
-            tails.push_back(f);
-        }
-            
-
-    if (!heads.empty() && !bodies.empty())
-        for (ExtFrame& head : heads)
-            for (ExtFrame& body : bodies)
-                if (head.getSeqNum() == body.getSeqNum())
-                {
-                    head.setSize(to_string(atoi(head.getSize().c_str()) + atoi(body.getSize().c_str())));
-                    //head.setOffset(to_string(atof(head.getOffset().c_str()) + atof(body.getOffset().c_str())));
-                
-                    break;
-                }
-
-    if (!heads.empty() && !tails.empty())
-        for (ExtFrame& head : heads)
-            for (ExtFrame& tail : tails)
-                if (head.getSeqNum() == tail.getSeqNum())
-                {
-                    head.setSize(to_string(atoi(head.getSize().c_str()) + atoi(tail.getSize().c_str())));
-                    //head.setOffset(to_string(atof(head.getOffset().c_str()) + atof(tail.getOffset().c_str())));
-
-                    string flags = head.getHFlags();
-                    flags[5] = tail.getHFlags()[5];
-                    head.setHFlags(flags);
-                    cout << tail.getFrNum();
-                    head.setFrNum(tail.getFrNum());
-
-                    break;
-                }
-
-    for (ExtFrame& head : heads)
-        fullFrames.push_back(head);
+    vector<ExtFrame> newFrames;
+    for (ExtFrame* f : fullFrames)
+    {
+        newFrames.push_back(*f);
+    }
     
-    return fullFrames;
+    frames.clear();
+
+    return newFrames;
 }
 
 DataSet CreateDataset()
@@ -223,13 +170,8 @@ DataSet CreateDataset()
 
     vector<ExtFrame> fullFrames = DefragmentFrames(extF);
 
-    //for (ExtFrame& f : fullFrames)
-    //{
-    //    f.Print();
-    //}
-
     vector<Device> devices;
-    Device device;
+    
     for (ExtFrame frame : fullFrames)
     {
         //Frame frame;
@@ -255,12 +197,12 @@ DataSet CreateDataset()
         }
         else
         {
+            Device device;
             device.setMac(frame.getMac());
             device.frames.push_back(frame);
             devices.push_back(device);
         }
     }
-
 
     for (Device d : devices)
     {
@@ -315,25 +257,25 @@ DataSet CreateDataset(vector<Frame>& frames)
         
     }
     buffer.clear();
-    ofstream fout;
-    fout.open("1.txt");
-    for (ExtFrame& frame : extF)
-    {
-        fout << frame.getMac() << endl;
-        fout << frame.getSize() << endl;
-        fout << frame.getOffset() << endl;
-        fout << frame.getHFlags() << endl;
-        fout << frame.getSeqNum() << endl;
-        fout << frame.getFrNum() << endl;
-    }
+    //ofstream fout;
+    //fout.open("1.txt");
+    //for (ExtFrame& frame : extF)
+    //{
+    //    fout << frame.getMac() << endl;
+    //    fout << frame.getSize() << endl;
+    //    fout << frame.getOffset() << endl;
+    //    fout << frame.getHFlags() << endl;
+    //    fout << frame.getSeqNum() << endl;
+    //    fout << frame.getFrNum() << endl;
+    //}
 
-    fout.close();
+    //fout.close();
     vector<ExtFrame> fullFrames = DefragmentFrames(extF);
 
 
 
     vector<Device> devices;
-    Device device;
+    
     for (ExtFrame frame : fullFrames)
     {
         //Frame frame;
@@ -359,6 +301,7 @@ DataSet CreateDataset(vector<Frame>& frames)
         }
         else
         {
+            Device device;
             device.setMac(frame.getMac());
             device.frames.push_back(frame);
             devices.push_back(device);

@@ -40,4 +40,6 @@ public:
 
 bool cmp(ExtFrame&, ExtFrame&);
 
+bool operator==(ExtFrame a, ExtFrame b);
+
 #endif

@@ -62,3 +62,13 @@ bool cmp(ExtFrame& a, ExtFrame& b)
     if (a.getHFlags() < b.getHFlags()) return true;
     if (a.getHFlags() > b.getHFlags()) return false;
 }
+
+bool operator==(ExtFrame a, ExtFrame b)
+{
+    if (a.getMac() == b.getMac() && a.getSize() == b.getSize() &&
+        a.getOffset() == b.getOffset() && a.getHFlags() == b.getHFlags() &&
+        a.getSeqNum() == b.getSeqNum() && a.getFrNum() == b.getFrNum())
+        return true;
+    else
+        return false;
+}
