@@ -27,6 +27,9 @@ void Frame::setFrameHex(string value) { frameHex = value; }
 bool Frame::getCorrect() { return correct; }
 void Frame::setCorrect(bool value) { correct = value; }
 
+string Frame::getParameters() { return parameters; }
+void Frame::setParameters(string value) { parameters = value; }
+
 int Frame::getType()
 {
     if (type == -1)
@@ -140,9 +143,11 @@ map<int, map<int, string>> Frame::subtypes
 
 void Frame::MakeParam(string name, string value)
 {
-    Param param{ name, value };
+    //Param param{ name, value };
 
-    params.push_back(param);
+    //params.push_back(param);
+
+    parameters += name + "=" + value;
 }
 
 void Frame::PrintParams()
@@ -229,7 +234,11 @@ void Frame::ChoiceParam(pair<string, string>& params)
         setCorrect(false);
     }
 
+    if (getParameters() != "")
+        setParameters(getParameters() + ",");
+
     MakeParam(params.first, params.second);
+
 }
 
 int CountCorrect(vector<Frame>& frames)
@@ -253,7 +262,8 @@ void PrintFrames(vector<Frame>& frames)
     {
         cout << f.getFrameName() << "\tOffset=" << f.getOffset() << ", BW=" << f.getBW() << ", MCS=" << f.getMCS() << ", Size=" << f.getSize() << endl;
         cout << "\t\tFrame=" << f.getFrameHex() << "\n\t\t";
-        f.PrintParams();
+        //f.PrintParams();
+        cout << f.getParameters();
         cout << "\n\n";
     }
 }

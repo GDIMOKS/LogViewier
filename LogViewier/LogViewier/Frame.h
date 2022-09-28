@@ -23,6 +23,7 @@ private:
 	string frameHex;
 	bool correct = true;
 	Param param;
+	string parameters = "";
 
 	int type = -1;
 	int subtype = -1;
@@ -49,6 +50,9 @@ public:
 
 	string getFrameHex();
 	void setFrameHex(string);
+
+	string getParameters();
+	void setParameters(string);
 
 	bool getCorrect();
 	void setCorrect(bool);

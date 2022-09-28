@@ -24,9 +24,11 @@ Graph MACReader(vector<Frame>&, int&);
 
 void LogReader(fs::path);
 
-void LogsTwoFiles(string, string, fs::path, vector<Frame>&);
+void LogsTwoFiles(string, string, vector<Frame>&);
 
 void LogsOneFile(string, vector<Frame>&);
+
+void LogsToFrames(vector<Frame>&, Frame&, string[], const int);
 
 DataSet CreateDataset(vector<Frame>&);
 
@@ -237,7 +239,7 @@ DataSet CreateDataset(vector<Frame>& frames)
 
         bool isExist = false;
 
-        for (ExtFrame e : buffer)
+        for (ExtFrame& e : buffer)
             if (tf.getFrNum() == e.getFrNum() && tf.getSeqNum() == e.getSeqNum())
             {
                 isExist = true;
@@ -257,6 +259,8 @@ DataSet CreateDataset(vector<Frame>& frames)
         
     }
     buffer.clear();
+
+
     //ofstream fout;
     //fout.open("1.txt");
     //for (ExtFrame& frame : extF)
@@ -276,7 +280,7 @@ DataSet CreateDataset(vector<Frame>& frames)
 
     vector<Device> devices;
     
-    for (ExtFrame frame : fullFrames)
+    for (ExtFrame& frame : fullFrames)
     {
         //Frame frame;
         //frame.setSize(tmpF.getSize());
@@ -309,7 +313,7 @@ DataSet CreateDataset(vector<Frame>& frames)
     }
 
 
-    for (Device d : devices)
+    for (Device& d : devices)
     {
         d.CalculateFeatures();
         d.PrintFeatures();
@@ -431,13 +435,13 @@ void LogReader(fs::path file)
     {
         file2.replace(file2.rfind("phy"), 3, "parser");
 
-        LogsTwoFiles(file1, file2, lastPath, frames);
+        LogsTwoFiles(file1, file2, frames);
     }
     else if (file.filename().string().find("_parser") != -1)
     {
         file2.replace(file2.rfind("parser"), 6, "phy");
 
-        LogsTwoFiles(file2, file1, lastPath, frames);
+        LogsTwoFiles(file2, file1, frames);
     }
     else
     {
@@ -468,50 +472,42 @@ void LogReader(fs::path file)
     cout << endl;
 }
 
-void LogsTwoFiles(string phyName, string parserName, fs::path lastPath, vector<Frame>& frames)
+void LogsTwoFiles(string phyName, string parserName, vector<Frame>& frames)
 {
     string file1 = phyName;
     string file2 = parserName;
     
     ifstream phyIn;
     ifstream parserIn;
-    ofstream fout;
-
-    fs::path currentDir = lastPath;
-    currentDir /= "tempFile.log";
-    string tempfile = currentDir.filename().string();
-
-    fout.open(tempfile);
 
     phyIn.open(file1);
     parserIn.open(file2);
 
     while (!phyIn.eof() && !parserIn.eof())
     {
-        string str;
-        string str1;
-        string str2;
-        string tempstring;
+        Frame frame;
+        string buffStr[2];
+        string name1;
+        string name2;
 
-        getline(phyIn, str);
+        phyIn >> name1;
+        parserIn >> name2;
 
-        if (str.empty())
-            break;
+        if (name1 != name2)
+        {
+           //something wrong
+        }
 
-        str1 = str.substr(0, str.find("Bits") - 1);
-        str2 = str.substr(str.find("Bits"));
-        parserIn >> tempstring;
-        getline(parserIn, tempstring);
+        frame.setFrameName(name1);
 
-        fout << str1 << "\n\t\t" << str2 << "\n\t" << tempstring << "\n\n";
+        getline(phyIn, buffStr[0]);
+        getline(parserIn, buffStr[1]);
+
+        LogsToFrames(frames, frame, buffStr, size(buffStr));
+
     }
     parserIn.close();
     phyIn.close();
-
-    fout.close();
-    LogsOneFile(tempfile, frames);
-
-    remove(tempfile.c_str());
 }
 
 void LogsOneFile(string fileName, vector<Frame>& frames)
@@ -529,31 +525,35 @@ void LogsOneFile(string fileName, vector<Frame>& frames)
         frame.setFrameName(name);
 
         for (int i = 0; i < size(buffStr); i++)
-        {
             getline(fin, buffStr[i]);
-            buffStr[i] = ffunc::EraseSymbol(buffStr[i], '\t');
-        }
 
-        for (string& b : buffStr)
-        {
-            if (b.empty())
-                continue;
-
-            pair<string, string> params;
-            vector<string> parameters;
-
-            ffunc::Separator(b, parameters, ",");
-
-            for (string p : parameters)
-            {
-                ffunc::Separator(p, params);
-                frame.ChoiceParam(params);
-            }
-        }
-
-        if (frame.getFrameName() != "")
-            frames.push_back(frame);
+        LogsToFrames(frames, frame, buffStr, size(buffStr));
     }
 
     fin.close();
+}
+
+void LogsToFrames(vector<Frame>& frames, Frame& frame, string b[], const int size)
+{
+    for (int i = 0; i < size; i++)
+    {
+        if (b[i].empty())
+            continue;
+        
+        b[i] = ffunc::EraseSymbol(b[i], '\t');
+
+        pair<string, string> params;
+        vector<string> parameters;
+
+        ffunc::Separator(b[i], parameters, ",");
+
+        for (string p : parameters)
+        {
+            ffunc::Separator(p, params);
+            frame.ChoiceParam(params);
+        }
+    }
+
+    if (frame.getFrameName() != "")
+        frames.push_back(frame);
 }

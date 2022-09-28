@@ -152,6 +152,9 @@
     <ClCompile Include="Param.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="alglibinternal.h" />
+    <ClInclude Include="alglibmisc.h" />
+    <ClInclude Include="ap.h" />
     <ClInclude Include="Device.h" />
     <ClInclude Include="ExtFrame.h" />
     <ClInclude Include="Features.h" />

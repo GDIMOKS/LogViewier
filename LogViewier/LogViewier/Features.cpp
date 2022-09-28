@@ -23,7 +23,7 @@ Features::Features(vector<double>& values) {
     minValue = CalcMin(values);
     maxValue = CalcMax(values);
     mean = CalcMean(values);
-    meanSq = CalcMean(values);
+    meanSq = CalcSqMean(values);
     rootMeanSq = sqrt(meanSq);
     median = CalcMedian(values);
     medianAD = CalcMedianAD(values, median);

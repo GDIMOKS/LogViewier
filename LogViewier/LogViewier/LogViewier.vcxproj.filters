@@ -68,5 +68,14 @@
     <ClInclude Include="Device.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
+    <ClInclude Include="alglibmisc.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="alglibinternal.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="ap.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
