@@ -25,8 +25,8 @@ void Device::CalculateFeatures()
     {
         if (f.getCorrect())
         {
-            double size = atof(f.getSize().c_str());
-            double time = atof(f.getOffset().c_str());
+            double size = stod(f.getSize());
+            double time = stod(f.getOffset());
 
             frameSizes.push_back(size);
             frameOffsets.push_back(time);

@@ -36,6 +36,10 @@ DataSet CreateDataset();
 
 vector<ExtFrame> DefragmentFrames(vector<ExtFrame>&);
 
+void KNN(DataSet&);
+
+double euclidian_distance(pair<double, double>&, pair<double, double>&);
+
 int main()
 {
     SetConsoleCP(1251);
@@ -452,6 +456,7 @@ void LogReader(fs::path file)
 
     DataSet dataset = CreateDataset(frames);
 
+    KNN(dataset);
 
     //int countNoAddress;
     //Graph g = MACReader(frames, countNoAddress);
@@ -471,6 +476,59 @@ void LogReader(fs::path file)
 
     cout << endl;
 }
+
+void KNN(DataSet& ds) {
+
+    vector<pair<double, double>> train, test;
+    //vector<string> x_train, x_test, y_train, y_test;
+
+    
+    for (Device d : ds)
+    {
+        for (int i = 0; i < size(d.frames); i++)
+        {
+            if (i <= size(d.frames) *2/3)
+            {
+                pair<double, double> p_train;
+                p_train.first = atof(d.frames[i].getSize().c_str());
+                p_train.second = atof(d.frames[i].getOffset().c_str());
+                //x_train.push_back(d.frames[i].getSize());
+                //y_train.push_back(d.frames[i].getOffset());
+
+                train.push_back(p_train);
+            }
+            else
+            {
+                pair<double, double> p_test;
+                p_test.first = atof(d.frames[i].getSize().c_str());
+                p_test.second = atof(d.frames[i].getOffset().c_str());
+                //x_test.push_back(d.frames[i].getSize());
+                //y_test.push_back(d.frames[i].getOffset());
+                test.push_back(p_test);
+            }
+        }
+    }
+
+    vector<double> distances;
+    for (pair<double, double> p1 : test)
+    {
+        for (pair<double, double> p2 : train)
+        {
+            distances.push_back(euclidian_distance(p1, p2));
+        }
+    }
+
+}
+
+double euclidian_distance(pair<double,double>& data1, pair<double, double>& data2)
+{
+    double distance = 0;
+
+    distance = pow(data1.first - data2.first, 2) + pow(data1.second - data2.second, 2);
+
+    return sqrt(distance);
+}
+
 
 void LogsTwoFiles(string phyName, string parserName, vector<Frame>& frames)
 {
