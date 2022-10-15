@@ -288,6 +288,7 @@ vector<ExtFrame> RemoveDuplicates(vector<Frame>& frames)
 void DeterminePivots(vector<Frame>& frames)
 {
     float mtu_size = -1;
+    vector<float> pivots;
     float pivot_size = -1;
     float sum = 0;
     float total_sample_size = 0;
@@ -309,7 +310,7 @@ void DeterminePivots(vector<Frame>& frames)
         case 4: // MLLL MLLM
             if (stof(buffer.front().getSize()) == mtu_size && stof(buffer.back().getSize()) == mtu_size)
             {
-                pivot_size = stof(buffer[buffer.size() - 2].getSize()); // L - pivot
+                pivots.push_back(stof(buffer[buffer.size() - 2].getSize())); // L - pivot
                 buffer.erase(buffer.begin(), buffer.end() - 1);         // MLLM -> M
             }
             break;
@@ -318,7 +319,7 @@ void DeterminePivots(vector<Frame>& frames)
             {
                 if (buffer[1].getSize() != buffer[0].getSize()) // L - pivot, MLM -> M
                 {
-                    pivot_size = stof(buffer[buffer.size() - 2].getSize());
+                    pivots.push_back(stof(buffer[buffer.size() - 2].getSize()));
                 }
 
                 buffer.erase(buffer.begin(), buffer.end() - 1); // MMM -> M
@@ -336,7 +337,22 @@ void DeterminePivots(vector<Frame>& frames)
             break;
         }
 
-        
+        if (!pivots.empty())
+        {
+            int popularity = 0;
+
+            for (float pivot : pivots)
+            {
+                int pivot_popularity = count(pivots.begin(), pivots.end(), pivot);
+                if (pivot_popularity > popularity)
+                {
+                    popularity = pivot_popularity;
+                    pivot_size = pivot;
+                }
+            }
+
+            
+        }
 
         buffer.push_back(frames[i]);
         if (buffer.size() > 5)
