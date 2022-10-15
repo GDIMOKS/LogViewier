@@ -30,11 +30,15 @@ void LogsOneFile(string, vector<Frame>&);
 
 void LogsToFrames(vector<Frame>&, Frame&, string[], const int);
 
-DataSet CreateDataset(vector<Frame>&);
+DataSet CreateDataset(vector<ExtFrame>&);
 
 DataSet CreateDataset();
 
+vector<ExtFrame> RemoveDuplicates(vector<Frame>&);
+
 vector<ExtFrame> DefragmentFrames(vector<ExtFrame>&);
+
+void DeterminePivots(vector<Frame>&);
 
 void KNN(DataSet&);
 
@@ -220,8 +224,8 @@ DataSet CreateDataset()
     return devices;
 }
 
-DataSet CreateDataset(vector<Frame>& frames)
-{   
+vector<ExtFrame> RemoveDuplicates(vector<Frame>& frames)
+{
     vector<ExtFrame> extF;
     vector<ExtFrame> buffer;
 
@@ -260,10 +264,9 @@ DataSet CreateDataset(vector<Frame>& frames)
         }
         else
             buffer.push_back(tf);
-        
+
     }
     buffer.clear();
-
 
     //ofstream fout;
     //fout.open("1.txt");
@@ -278,18 +281,94 @@ DataSet CreateDataset(vector<Frame>& frames)
     //}
 
     //fout.close();
-    vector<ExtFrame> fullFrames = DefragmentFrames(extF);
 
+    return extF;
+}
 
+void DeterminePivots(vector<Frame>& frames)
+{
+    float mtu_size = -1;
+    float pivot_size = -1;
+    float sum = 0;
+    float total_sample_size = 0;
+    vector<Frame> buffer;
+    int j = 0;
 
+    
+    for (int i = 0; i < 20; i++)
+    {
+        sum += stof(frames[i].getSize());
+
+        switch (buffer.size())
+        {
+        case 5: // MLLLM MLLLL
+            if (buffer.front().getSize() != buffer.back().getSize())
+                buffer.erase(buffer.begin(), buffer.end() - 1);         // MLLLL -> L
+
+            //in case 4: L - pivot, MLLLM -> M
+        case 4: // MLLL MLLM
+            if (stof(buffer.front().getSize()) == mtu_size && stof(buffer.back().getSize()) == mtu_size)
+            {
+                pivot_size = stof(buffer[buffer.size() - 2].getSize()); // L - pivot
+                buffer.erase(buffer.begin(), buffer.end() - 1);         // MLLM -> M
+            }
+            break;
+        case 3:
+            if (stof(buffer.front().getSize()) == mtu_size && stof(buffer.back().getSize()) == mtu_size) // MMM MLM
+            {
+                if (buffer[1].getSize() != buffer[0].getSize()) // L - pivot, MLM -> M
+                {
+                    pivot_size = stof(buffer[buffer.size() - 2].getSize());
+                }
+
+                buffer.erase(buffer.begin(), buffer.end() - 1); // MMM -> M
+            }
+            else if (stof(buffer[1].getSize()) == mtu_size || stof(buffer[0].getSize()) == mtu_size)// LMM LML MML MLL
+            {
+                if (buffer[0].getSize() != buffer[1].getSize()) // MLL
+                    break;
+
+                buffer.erase(buffer.begin()); // MM ML 
+            }
+            else // LLL LLM
+                buffer.erase(buffer.begin(), buffer.end() - 1); // L M
+
+            break;
+        }
+
+        
+
+        buffer.push_back(frames[i]);
+        if (buffer.size() > 5)
+            buffer.erase(buffer.begin());
+
+        if (stof(frames[i].getSize()) > mtu_size)
+        {
+            mtu_size = stof(frames[i].getSize());
+        }
+    }
+
+    total_sample_size = sum;
+    cout  << "\n\t" << setw(15) << "mtu_size:" << mtu_size << endl;
+    if (pivot_size == -1)
+    {
+        cout << "\t" << setw(15) << "pivot_size:" <<  "not udentified" << endl;
+        return;
+    }
+    
+    cout << "\t" << setw(15) << "pivot_size:" << pivot_size << endl;
+    //cout << "\t" << setw(15) << "total_sample_size: " << total_sample_size << endl;
+    cout << "\t" << setw(15) << "PM:"  << pivot_size / mtu_size << endl;
+    cout << "\t" << setw(15) << "PT:" << pivot_size / total_sample_size << endl;
+    
+}
+
+DataSet CreateDataset(vector<ExtFrame>& frames)
+{   
     vector<Device> devices;
     
-    for (ExtFrame& frame : fullFrames)
+    for (ExtFrame& frame : frames)
     {
-        //Frame frame;
-        //frame.setSize(tmpF.getSize());
-        //frame.setOffset(tmpF.getOffset());
-
         bool isExist = false;
         int j;
 
@@ -321,7 +400,12 @@ DataSet CreateDataset(vector<Frame>& frames)
     {
         d.CalculateFeatures();
         d.PrintFeatures();
+        DeterminePivots(d.frames);
         cout << endl;
+
+        //cout << "Device: " << d.getMac() << endl;
+        //PrintFrames(d.frames);
+
     }
     
     return devices;
@@ -454,9 +538,13 @@ void LogReader(fs::path file)
 
     //PrintFrames(frames);
 
-    DataSet dataset = CreateDataset(frames);
+    vector<ExtFrame> extended_frames = RemoveDuplicates(frames);
+    vector<ExtFrame> defragmented_frames = DefragmentFrames(extended_frames);
+    DataSet dataset = CreateDataset(defragmented_frames);
 
-    KNN(dataset);
+    
+
+    //KNN(dataset);
 
     //int countNoAddress;
     //Graph g = MACReader(frames, countNoAddress);
