@@ -15,10 +15,12 @@
 #include "Graph.h"
 #include "Features.h"
 #include "Device.h"
+#include "Record.h"
 
 namespace fs = std::filesystem;
 using namespace std;
-using DataSet = vector<Device>;
+using Dataset = vector<Record>;
+using Sample = vector<Frame>;
 
 Graph MACReader(vector<Frame>&, int&);
 
@@ -30,19 +32,21 @@ void LogsOneFile(string, vector<Frame>&);
 
 void LogsToFrames(vector<Frame>&, Frame&, string[], const int);
 
-DataSet CreateDataset(vector<ExtFrame>&);
+vector<Sample> CreateSamples(vector<Device>&);
 
-DataSet CreateDataset();
+vector<Device> CreateDevices(vector<ExtFrame>&);
+
+Dataset CreateRecords(vector<Sample>&);
+
+vector<Device> CreateDataset();
 
 vector<ExtFrame> RemoveDuplicates(vector<Frame>&);
 
 vector<ExtFrame> DefragmentFrames(vector<ExtFrame>&);
 
-void DeterminePivots(vector<Frame>&);
+//void KNN(DataSet&);
 
-void KNN(DataSet&);
-
-double euclidian_distance(pair<double, double>&, pair<double, double>&);
+//double euclidian_distance(pair<double, double>&, pair<double, double>&);
 
 int main()
 {
@@ -151,7 +155,7 @@ vector<ExtFrame> DefragmentFrames(vector<ExtFrame>& frames)
     return newFrames;
 }
 
-DataSet CreateDataset()
+vector<Device> CreateDataset()
 {
     vector<ExtFrame> extF;
 
@@ -184,9 +188,6 @@ DataSet CreateDataset()
     
     for (ExtFrame frame : fullFrames)
     {
-        //Frame frame;
-        //frame.setSize(tmpF.getSize());
-        //frame.setOffset(tmpF.getOffset());
 
         bool isExist = false;
         int j;
@@ -212,13 +213,6 @@ DataSet CreateDataset()
             device.frames.push_back(frame);
             devices.push_back(device);
         }
-    }
-
-    for (Device d : devices)
-    {
-        d.CalculateFeatures();
-        d.PrintFeatures();
-        cout << endl;
     }
 
     return devices;
@@ -285,101 +279,44 @@ vector<ExtFrame> RemoveDuplicates(vector<Frame>& frames)
     return extF;
 }
 
-void DeterminePivots(vector<Frame>& frames)
+Dataset CreateDataset(vector<Sample>& samples)
 {
-    float mtu_size = -1;
-    vector<float> pivots;
-    float pivot_size = -1;
-    float sum = 0;
-    float total_sample_size = 0;
-    vector<Frame> buffer;
-    int j = 0;
-
-    
-    for (int i = 0; i < 20; i++)
+    vector<Record> records;
+    for (Sample& sample : samples)
     {
-        sum += stof(frames[i].getSize());
+        Record record;
 
-        switch (buffer.size())
-        {
-        case 5: // MLLLM MLLLL
-            if (buffer.front().getSize() != buffer.back().getSize())
-                buffer.erase(buffer.begin(), buffer.end() - 1);         // MLLLL -> L
-
-            //in case 4: L - pivot, MLLLM -> M
-        case 4: // MLLL MLLM
-            if (stof(buffer.front().getSize()) == mtu_size && stof(buffer.back().getSize()) == mtu_size)
-            {
-                pivots.push_back(stof(buffer[buffer.size() - 2].getSize())); // L - pivot
-                buffer.erase(buffer.begin(), buffer.end() - 1);         // MLLM -> M
-            }
-            break;
-        case 3:
-            if (stof(buffer.front().getSize()) == mtu_size && stof(buffer.back().getSize()) == mtu_size) // MMM MLM
-            {
-                if (buffer[1].getSize() != buffer[0].getSize()) // L - pivot, MLM -> M
-                {
-                    pivots.push_back(stof(buffer[buffer.size() - 2].getSize()));
-                }
-
-                buffer.erase(buffer.begin(), buffer.end() - 1); // MMM -> M
-            }
-            else if (stof(buffer[1].getSize()) == mtu_size || stof(buffer[0].getSize()) == mtu_size)// LMM LML MML MLL
-            {
-                if (buffer[0].getSize() != buffer[1].getSize()) // MLL
-                    break;
-
-                buffer.erase(buffer.begin()); // MM ML 
-            }
-            else // LLL LLM
-                buffer.erase(buffer.begin(), buffer.end() - 1); // L M
-
-            break;
-        }
-
-        if (!pivots.empty())
-        {
-            int popularity = 0;
-
-            for (float pivot : pivots)
-            {
-                int pivot_popularity = count(pivots.begin(), pivots.end(), pivot);
-                if (pivot_popularity > popularity)
-                {
-                    popularity = pivot_popularity;
-                    pivot_size = pivot;
-                }
-            }
-
-            
-        }
-
-        buffer.push_back(frames[i]);
-        if (buffer.size() > 5)
-            buffer.erase(buffer.begin());
-
-        if (stof(frames[i].getSize()) > mtu_size)
-        {
-            mtu_size = stof(frames[i].getSize());
-        }
+        record.set_features(sample);
+        records.push_back(record);
     }
 
-    total_sample_size = sum;
-    cout  << "\n\t" << setw(15) << "mtu_size:" << mtu_size << endl;
-    if (pivot_size == -1)
-    {
-        cout << "\t" << setw(15) << "pivot_size:" <<  "not udentified" << endl;
-        return;
-    }
-    
-    cout << "\t" << setw(15) << "pivot_size:" << pivot_size << endl;
-    //cout << "\t" << setw(15) << "total_sample_size: " << total_sample_size << endl;
-    cout << "\t" << setw(15) << "PM:"  << pivot_size / mtu_size << endl;
-    cout << "\t" << setw(15) << "PT:" << pivot_size / total_sample_size << endl;
-    
+    return records;
 }
 
-DataSet CreateDataset(vector<ExtFrame>& frames)
+vector<Sample> CreateSamples(vector<Device>& devices)
+{
+    vector<Sample> samples;
+    for (Device& d : devices)
+    {
+        Sample sample;
+
+        for (Frame& frame : d.frames)
+        {
+            sample.push_back(frame);
+            if (sample.size() == 20)
+            {
+                samples.push_back(sample);
+                sample.erase(sample.begin(), sample.begin() + 7);
+            }
+        }
+    }
+    
+    return samples;
+
+
+}
+
+vector<Device> CreateDevices(vector<ExtFrame>& frames)
 {   
     vector<Device> devices;
     
@@ -411,19 +348,6 @@ DataSet CreateDataset(vector<ExtFrame>& frames)
         }
     }
 
-
-    for (Device& d : devices)
-    {
-        d.CalculateFeatures();
-        d.PrintFeatures();
-        DeterminePivots(d.frames);
-        cout << endl;
-
-        //cout << "Device: " << d.getMac() << endl;
-        //PrintFrames(d.frames);
-
-    }
-    
     return devices;
 }
 
@@ -556,7 +480,9 @@ void LogReader(fs::path file)
 
     vector<ExtFrame> extended_frames = RemoveDuplicates(frames);
     vector<ExtFrame> defragmented_frames = DefragmentFrames(extended_frames);
-    DataSet dataset = CreateDataset(defragmented_frames);
+    vector<Device> devices = CreateDevices(defragmented_frames);
+    vector<Sample> samples = CreateSamples(devices);
+    Dataset dataser = CreateDataset(samples);
 
     
 
@@ -581,57 +507,57 @@ void LogReader(fs::path file)
     cout << endl;
 }
 
-void KNN(DataSet& ds) {
+//void KNN(DataSet& ds) {
+//
+//    vector<pair<double, double>> train, test;
+//    //vector<string> x_train, x_test, y_train, y_test;
+//
+//    
+//    for (Device d : ds)
+//    {
+//        for (int i = 0; i < size(d.frames); i++)
+//        {
+//            if (i <= size(d.frames) *2/3)
+//            {
+//                pair<double, double> p_train;
+//                p_train.first = atof(d.frames[i].getSize().c_str());
+//                p_train.second = atof(d.frames[i].getOffset().c_str());
+//                //x_train.push_back(d.frames[i].getSize());
+//                //y_train.push_back(d.frames[i].getOffset());
+//
+//                train.push_back(p_train);
+//            }
+//            else
+//            {
+//                pair<double, double> p_test;
+//                p_test.first = atof(d.frames[i].getSize().c_str());
+//                p_test.second = atof(d.frames[i].getOffset().c_str());
+//                //x_test.push_back(d.frames[i].getSize());
+//                //y_test.push_back(d.frames[i].getOffset());
+//                test.push_back(p_test);
+//            }
+//        }
+//    }
+//
+//    vector<double> distances;
+//    for (pair<double, double> p1 : test)
+//    {
+//        for (pair<double, double> p2 : train)
+//        {
+//            distances.push_back(euclidian_distance(p1, p2));
+//        }
+//    }
+//
+//}
 
-    vector<pair<double, double>> train, test;
-    //vector<string> x_train, x_test, y_train, y_test;
-
-    
-    for (Device d : ds)
-    {
-        for (int i = 0; i < size(d.frames); i++)
-        {
-            if (i <= size(d.frames) *2/3)
-            {
-                pair<double, double> p_train;
-                p_train.first = atof(d.frames[i].getSize().c_str());
-                p_train.second = atof(d.frames[i].getOffset().c_str());
-                //x_train.push_back(d.frames[i].getSize());
-                //y_train.push_back(d.frames[i].getOffset());
-
-                train.push_back(p_train);
-            }
-            else
-            {
-                pair<double, double> p_test;
-                p_test.first = atof(d.frames[i].getSize().c_str());
-                p_test.second = atof(d.frames[i].getOffset().c_str());
-                //x_test.push_back(d.frames[i].getSize());
-                //y_test.push_back(d.frames[i].getOffset());
-                test.push_back(p_test);
-            }
-        }
-    }
-
-    vector<double> distances;
-    for (pair<double, double> p1 : test)
-    {
-        for (pair<double, double> p2 : train)
-        {
-            distances.push_back(euclidian_distance(p1, p2));
-        }
-    }
-
-}
-
-double euclidian_distance(pair<double,double>& data1, pair<double, double>& data2)
-{
-    double distance = 0;
-
-    distance = pow(data1.first - data2.first, 2) + pow(data1.second - data2.second, 2);
-
-    return sqrt(distance);
-}
+//double euclidian_distance(pair<double,double>& data1, pair<double, double>& data2)
+//{
+//    double distance = 0;
+//
+//    distance = pow(data1.first - data2.first, 2) + pow(data1.second - data2.second, 2);
+//
+//    return sqrt(distance);
+//}
 
 
 void LogsTwoFiles(string phyName, string parserName, vector<Frame>& frames)

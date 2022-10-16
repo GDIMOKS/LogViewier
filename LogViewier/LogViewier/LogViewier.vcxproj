@@ -150,6 +150,7 @@
     <ClCompile Include="Graph.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Param.cpp" />
+    <ClCompile Include="Record.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="alglibinternal.h" />
@@ -163,6 +164,7 @@
     <ClInclude Include="Frame.h" />
     <ClInclude Include="Graph.h" />
     <ClInclude Include="Param.h" />
+    <ClInclude Include="Record.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -21,12 +21,6 @@ public:
     std::string getMac();
     void setMac(std::string value);
 
-    Features getSizeFeatures();
-    Features getTimeFeatures();
-    void CalculateFeatures();
-    
-    void PrintFeatures();
-
 };
 
 #endif
